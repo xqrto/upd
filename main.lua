@@ -1,5 +1,5 @@
 --[[
-XQRTO Script Hub + Owner Effects + Cape
+XQRTO Script Hub + Owner Effects + Cape (Keine Hitbox)
 LocalScript in StarterPlayerScripts
 --]]
 
@@ -89,6 +89,7 @@ local function createOwnerEffects(character)
         p.Size = Vector3.new(0.4,0.4,0.4)
         p.Anchored = true
         p.CanCollide = false
+        p.Massless = true
         p.Material = Enum.Material.Neon
         p.Transparency = 0.3
         p.Parent = auraFolder
@@ -118,6 +119,7 @@ local function createOwnerEffects(character)
         cape.Size = Vector3.new(1,2,0.2)
         cape.Anchored = false
         cape.CanCollide = false
+        cape.Massless = true
         cape.Material = Enum.Material.Neon
         cape.Color = Color3.fromRGB(255,255,255)
         cape.Parent = Workspace
