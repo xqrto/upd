@@ -12,6 +12,7 @@ local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 -- Skripte
 local scripts = {
     {name = "AimBot", url = "https://raw.githubusercontent.com/xqrto/upd/main/fefrwdeu.lua"},
+    {name = "NoClip", url = "https://raw.githubusercontent.com/xqrto/upd/main/noclip.lua"},
     {name = "Fly", url = "https://raw.githubusercontent.com/xqrto/upd/main/fly.lua"},
     {name = "Tracer", url = "https://raw.githubusercontent.com/xqrto/upd/main/tracer.lua"},
 }
