@@ -1,5 +1,5 @@
 --[[
-XQRTO Script Hub + Owner Effects + Cape (Keine Hitbox)
+Owner Effects + Script Hub komplett (keine Physik)
 LocalScript in StarterPlayerScripts
 --]]
 
@@ -10,39 +10,30 @@ local LocalPlayer = Players.LocalPlayer
 local Camera = Workspace.CurrentCamera
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
------------------------------
--- Skriptliste
------------------------------
+-- Skripte
 local scripts = {
     {name = "AimBot", url = "https://raw.githubusercontent.com/xqrto/upd/main/fefrwdeu.lua"},
     {name = "Tracer", url = "https://raw.githubusercontent.com/xqrto/upd/main/tracer.lua"},
 }
 
------------------------------
 -- Owner-Liste
------------------------------
 local ownerNames = {
     ["f7007l"] = true,
     ["Ipnuuball1"] = true
 }
 
------------------------------
--- Rainbow-Funktion
------------------------------
+-- Rainbow-Farben
 local function getRainbowColor()
-    local t = tick() * 2
-    return Color3.fromHSV(t % 1,1,1)
+    local t = tick()*2
+    return Color3.fromHSV(t%1,1,1)
 end
 
------------------------------
--- Owner Label + Partikel + Cape
------------------------------
+-- OWNER Effekte
 local function createOwnerEffects(character)
     local root = character:WaitForChild("HumanoidRootPart")
     local head = character:WaitForChild("Head")
-    local humanoid = character:WaitForChild("Humanoid")
 
-    -- OWNER Billboard
+    -- OWNER Label
     if not head:FindFirstChild("OwnerLabel") then
         local bill = Instance.new("BillboardGui")
         bill.Name = "OwnerLabel"
@@ -77,71 +68,55 @@ local function createOwnerEffects(character)
         end)
     end
 
-    -- Partikel-Aura
-    local auraFolder = Instance.new("Folder")
-    auraFolder.Name = "OwnerAura"
-    auraFolder.Parent = Workspace
+    -- Partikel Aura
+    if not root:FindFirstChild("OwnerAttachment") then
+        local attach = Instance.new("Attachment")
+        attach.Name = "OwnerAttachment"
+        attach.Parent = root
 
-    local particleParts = {}
-    local NUM_PARTICLES = 30
-    for i=1,NUM_PARTICLES do
-        local p = Instance.new("Part")
-        p.Size = Vector3.new(0.4,0.4,0.4)
-        p.Anchored = true
-        p.CanCollide = false
-        p.Massless = true
-        p.Material = Enum.Material.Neon
-        p.Transparency = 0.3
-        p.Parent = auraFolder
-        table.insert(particleParts,p)
+        local emitter = Instance.new("ParticleEmitter")
+        emitter.Rate = 30
+        emitter.Lifetime = NumberRange.new(0.5,1.5)
+        emitter.Speed = NumberRange.new(0,2)
+        emitter.Size = NumberSequence.new(0.3,0.7)
+        emitter.Color = ColorSequence.new(getRainbowColor(), getRainbowColor())
+        emitter.LightEmission = 0.8
+        emitter.Transparency = NumberSequence.new(0.3)
+        emitter.EmissionDirection = Enum.NormalId.Top
+        emitter.Parent = attach
+
+        RunService.RenderStepped:Connect(function()
+            emitter.Color = ColorSequence.new(getRainbowColor(), getRainbowColor())
+        end)
     end
 
-    RunService.RenderStepped:Connect(function()
-        local isFirstPerson = (Camera.CFrame.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude < 2
-        for i,part in pairs(particleParts) do
-            if isFirstPerson then
-                part.Transparency = 1
-            else
-                part.Transparency = 0.3
-                local angle = i/NUM_PARTICLES * math.pi*2 + tick()
-                local radius = 2 + math.sin(tick()*2+i)
-                local height = math.sin(tick()*2+i)*2
-                part.Position = root.Position + Vector3.new(math.cos(angle)*radius,height,math.sin(angle)*radius)
-                part.Color = getRainbowColor()
-            end
-        end
-    end)
-
-    -- Cape
+    -- Cape (nur visuell, Attachment + Mesh)
     if not root:FindFirstChild("OwnerCape") then
-        local cape = Instance.new("Part")
-        cape.Name = "OwnerCape"
-        cape.Size = Vector3.new(1,2,0.2)
-        cape.Anchored = false
-        cape.CanCollide = false
-        cape.Massless = true
-        cape.Material = Enum.Material.Neon
-        cape.Color = Color3.fromRGB(255,255,255)
-        cape.Parent = Workspace
+        local attach = Instance.new("Attachment")
+        attach.Name = "OwnerCape"
+        attach.Position = Vector3.new(0,0,-1)
+        attach.Parent = root
 
-        local mesh = Instance.new("SpecialMesh")
-        mesh.MeshType = Enum.MeshType.FileMesh
-        mesh.MeshId = "http://www.roblox.com/asset/?id=8119322043"
-        mesh.TextureId = "http://www.roblox.com/asset/?id=8119322043"
-        mesh.Scale = Vector3.new(2,2,1)
-        mesh.Parent = cape
+        local meshPart = Instance.new("MeshPart")
+        meshPart.MeshId = "http://www.roblox.com/asset/?id=8119322043"
+        meshPart.TextureID = "http://www.roblox.com/asset/?id=8119322043"
+        meshPart.Size = Vector3.new(2,2,0.2)
+        meshPart.Anchored = false
+        meshPart.CanCollide = false
+        meshPart.Massless = true
+        meshPart.Material = Enum.Material.Neon
+        meshPart.Color = Color3.fromRGB(255,255,255)
+        meshPart.Parent = Workspace
 
         local weld = Instance.new("WeldConstraint")
         weld.Part0 = root
-        weld.Part1 = cape
-        weld.Parent = cape
+        weld.Part1 = meshPart
+        weld.Parent = meshPart
 
         RunService.RenderStepped:Connect(function()
-            if root and cape then
-                local vel = humanoid.MoveDirection.Magnitude
-                local sway = math.sin(tick()*5)*0.3 + vel*0.2
-                cape.CFrame = root.CFrame * CFrame.new(0,-0.5,-1) * CFrame.Angles(0,sway,0)
-            end
+            local vel = character:FindFirstChild("Humanoid") and character.Humanoid.MoveDirection.Magnitude or 0
+            local sway = math.sin(tick()*5)*0.3 + vel*0.2
+            meshPart.CFrame = root.CFrame * CFrame.new(0,-0.5,-1) * CFrame.Angles(0,sway,0)
         end)
     end
 end
