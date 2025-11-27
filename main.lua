@@ -1,5 +1,5 @@
 --[[
-Complete Script Hub + Owner Display
+Complete Script Hub + Permanent Owner Display
 LocalScript in StarterPlayerScripts
 --]]
 
@@ -29,44 +29,43 @@ local ownerNames = {
 -----------------------------
 local function getRainbowColor()
     local t = tick() * 2
-    local r = math.sin(t) * 0.5 + 0.5
-    local g = math.sin(t + 2) * 0.5 + 0.5
-    local b = math.sin(t + 4) * 0.5 + 0.5
-    return Color3.new(r,g,b)
+    return Color3.fromHSV(t % 1, 1, 1)
 end
 
 -----------------------------
 -- Owner Label erstellen
 -----------------------------
 local function createOwnerLabel(character)
-    local head = character:FindFirstChild("Head")
-    if not head then return end
+    local head = character:WaitForChild("Head")
+    if not head:FindFirstChild("OwnerLabel") then
+        local bill = Instance.new("BillboardGui")
+        bill.Name = "OwnerLabel"
+        bill.Adornee = head
+        bill.Size = UDim2.new(0,120,0,40)
+        bill.StudsOffset = Vector3.new(0,2.5,0)
+        bill.AlwaysOnTop = true
+        bill.Parent = head
 
-    local bill = Instance.new("BillboardGui")
-    bill.Name = "OwnerLabel"
-    bill.Adornee = head
-    bill.Size = UDim2.new(0,120,0,40)
-    bill.StudsOffset = Vector3.new(0,2.5,0)
-    bill.AlwaysOnTop = true
-    bill.Parent = head
+        local text = Instance.new("TextLabel")
+        text.Size = UDim2.new(1,0,1,0)
+        text.BackgroundTransparency = 1
+        text.Text = "OWNER"
+        text.Font = Enum.Font.GothamBold
+        text.TextSize = 20
+        text.TextColor3 = getRainbowColor()
+        text.Parent = bill
 
-    local text = Instance.new("TextLabel")
-    text.Size = UDim2.new(1,0,1,0)
-    text.BackgroundTransparency = 1
-    text.Text = "OWNER"
-    text.Font = Enum.Font.GothamBold
-    text.TextSize = 20
-    text.TextColor3 = Color3.new(1,0,0)
-    text.Parent = bill
-
-    RunService.RenderStepped:Connect(function()
-        if text.Parent then
-            text.TextColor3 = getRainbowColor()
-        end
-    end)
+        -- Regenbogen dauerhaft aktualisieren
+        RunService.RenderStepped:Connect(function()
+            if text.Parent then
+                text.TextColor3 = getRainbowColor()
+            end
+        end)
+    end
 end
 
-local function onPlayerAdded(player)
+-- Spieler prüfen
+local function checkPlayer(player)
     if ownerNames[player.Name] then
         if player.Character then
             createOwnerLabel(player.Character)
@@ -78,9 +77,9 @@ local function onPlayerAdded(player)
 end
 
 for _,p in pairs(Players:GetPlayers()) do
-    onPlayerAdded(p)
+    checkPlayer(p)
 end
-Players.PlayerAdded:Connect(onPlayerAdded)
+Players.PlayerAdded:Connect(checkPlayer)
 
 -----------------------------
 -- GUI erstellen
@@ -98,6 +97,7 @@ frame.Parent = screenGui
 frame.Active = true
 frame.Draggable = true
 frame.ClipsDescendants = true
+frame.AnchorPoint = Vector2.new(0,0)
 
 -- Titel
 local title = Instance.new("TextLabel")
@@ -146,7 +146,7 @@ local function createButton(parent,text,callback)
     btn.MouseButton1Click:Connect(callback)
 end
 
--- Skripte Buttons
+-- Skript laden Funktion
 local function loadScript(url)
     local success, response = pcall(function() return game:HttpGet(url) end)
     if success and response then
@@ -161,6 +161,7 @@ local function loadScript(url)
     end
 end
 
+-- Skript Buttons
 for _,s in ipairs(scripts) do
     createButton(scrollFrame,s.name,function()
         screenGui:Destroy()
