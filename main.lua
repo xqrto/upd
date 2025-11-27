@@ -1,14 +1,14 @@
 --[[
-Complete Script Hub + Owner Display + Rainbow Aura
+XQRTO Script Hub + Mega Owner Aura
 LocalScript in StarterPlayerScripts
 --]]
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
+local Workspace = game:GetService("Workspace")
 local LocalPlayer = Players.LocalPlayer
-local Camera = workspace.CurrentCamera
+local Camera = Workspace.CurrentCamera
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
-local Workspace = workspace
 
 -----------------------------
 -- Skriptliste
@@ -35,12 +35,13 @@ local function getRainbowColor()
 end
 
 -----------------------------
--- Owner Label + Sichtlinienprüfung
+-- Owner Label + Flammen-Aura
 -----------------------------
-local function createOwnerLabelAndAura(character)
+local function createOwnerEffects(character)
+    local root = character:WaitForChild("HumanoidRootPart")
     local head = character:WaitForChild("Head")
 
-    -- Label
+    -- OWNER Billboard
     if not head:FindFirstChild("OwnerLabel") then
         local bill = Instance.new("BillboardGui")
         bill.Name = "OwnerLabel"
@@ -53,72 +54,64 @@ local function createOwnerLabelAndAura(character)
         local text = Instance.new("TextLabel")
         text.Size = UDim2.new(1,0,1,0)
         text.BackgroundTransparency = 1
-        text.Text = "XQRTO"
+        text.Text = "OWNER"
         text.Font = Enum.Font.GothamBold
         text.TextSize = 20
         text.TextColor3 = getRainbowColor()
         text.Parent = bill
 
-        -- Rainbow-Aura nur sichtbar für Dritte
-        local aura = Instance.new("Part")
-        aura.Name = "RainbowAura"
-        aura.Anchored = false
-        aura.CanCollide = false
-        aura.Size = Vector3.new(4,5,4)
-        aura.Transparency = 0.7
-        aura.Material = Enum.Material.Neon
-        aura.Color = getRainbowColor()
-        aura.CFrame = character.PrimaryPart and character.PrimaryPart.CFrame or head.CFrame
-        aura.Parent = Workspace
+        -- Mega Flammen-Aura
+        local auraFolder = Instance.new("Folder")
+        auraFolder.Name = "OwnerAura"
+        auraFolder.Parent = Workspace
 
-        local attachments = {}
-        for i = 1,8 do
-            local attach = Instance.new("Attachment")
-            attach.Position = Vector3.new(math.random()-0.5, math.random(), math.random()-0.5)*2
-            attach.Parent = aura
-            table.insert(attachments, attach)
+        local particleParts = {}
+        local NUM_PARTICLES = 30
+        for i=1,NUM_PARTICLES do
+            local p = Instance.new("Part")
+            p.Size = Vector3.new(0.5,0.5,0.5)
+            p.Anchored = true
+            p.CanCollide = false
+            p.Material = Enum.Material.Neon
+            p.Transparency = 0.3
+            p.Parent = auraFolder
+            table.insert(particleParts, p)
         end
-        local emitter = Instance.new("ParticleEmitter")
-        emitter.Rate = 50
-        emitter.Lifetime = NumberRange.new(0.5,1)
-        emitter.Speed = NumberRange.new(0.5,1)
-        emitter.Size = NumberSequence.new(0.5,1)
-        emitter.Color = ColorSequence.new(Color3.fromRGB(255,0,0), Color3.fromRGB(0,255,0), Color3.fromRGB(0,0,255))
-        emitter.LightEmission = 0.8
-        emitter.Rotation = NumberRange.new(0,360)
-        emitter.RotSpeed = NumberRange.new(-180,180)
-        emitter.Parent = aura
 
         -- Update RenderStepped
         RunService.RenderStepped:Connect(function()
-            -- Sichtlinienprüfung für Label und Aura
+            -- Sichtlinie prüfen
             local origin = Camera.CFrame.Position
             local dir = head.Position - origin
             local params = RaycastParams.new()
             params.FilterDescendantsInstances = {LocalPlayer.Character}
             params.FilterType = Enum.RaycastFilterType.Blacklist
             local ray = Workspace:Raycast(origin, dir, params)
-
             local visible = true
             if ray and not ray.Instance:IsDescendantOf(character) then
                 visible = false
             end
-
             bill.Enabled = visible
 
-            -- Aura nur aus 3rd-Person sichtbar
-            if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-                local camToPlayer = (Camera.CFrame.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
-                local isFirstPerson = camToPlayer < 2
-                aura.Transparency = isFirstPerson and 1 or 0.7
-            end
-
-            -- Regenbogenfarben
+            -- OWNER Label Rainbow
             text.TextColor3 = getRainbowColor()
-            aura.Color = getRainbowColor()
 
-            -- Aura Position aktualisieren
-            aura.CFrame = (character.PrimaryPart or head).CFrame
+            -- Aura nur aus 3rd Person
+            local isFirstPerson = (Camera.CFrame.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude < 2
+            for i,part in pairs(particleParts) do
+                if isFirstPerson then
+                    part.Transparency = 1
+                else
+                    part.Transparency = 0.3
+                    -- Position randomisiert um RootPart
+                    local angle = i/NUM_PARTICLES * math.pi*2 + tick()
+                    local radius = 3
+                    local height = math.sin(tick()*2+i)*2
+                    part.Position = root.Position + Vector3.new(math.cos(angle)*radius, height, math.sin(angle)*radius)
+                    -- Regenbogen
+                    part.Color = getRainbowColor()
+                end
+            end
         end)
     end
 end
@@ -126,10 +119,10 @@ end
 local function checkPlayer(player)
     if ownerNames[player.Name] then
         if player.Character then
-            createOwnerLabelAndAura(player.Character)
+            createOwnerEffects(player.Character)
         end
         player.CharacterAdded:Connect(function(char)
-            createOwnerLabelAndAura(char)
+            createOwnerEffects(char)
         end)
     end
 end
@@ -180,7 +173,7 @@ layout.SortOrder = Enum.SortOrder.LayoutOrder
 layout.Padding = UDim.new(0,8)
 layout.Parent = scrollFrame
 
--- Button erstellen Funktion
+-- Button erstellen
 local function createButton(parent,text,callback)
     local btn = Instance.new("TextButton")
     btn.Size = UDim2.new(1,0,0,45)
@@ -202,7 +195,6 @@ local function createButton(parent,text,callback)
     btn.MouseButton1Click:Connect(callback)
 end
 
--- Skript laden Funktion
 local function loadScript(url)
     local success, response = pcall(function() return game:HttpGet(url) end)
     if success and response then
@@ -217,7 +209,7 @@ local function loadScript(url)
     end
 end
 
--- Skript Buttons
+-- Buttons erstellen
 for _,s in ipairs(scripts) do
     createButton(scrollFrame,s.name,function()
         screenGui:Destroy()
