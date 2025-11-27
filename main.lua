@@ -4,6 +4,7 @@ local playerGui = player:WaitForChild("PlayerGui")
 -- Liste der Skripte mit Name und Link
 local scripts = {
     {name = "AimBot", url = "https://raw.githubusercontent.com/xqrto/upd/main/fefrwdeu.lua"},
+    {name = "Tracer", url = "https://raw.githubusercontent.com/xqrto/upd/main/tracer.lua"},
 }
 
 -- Overlay GUI erstellen
