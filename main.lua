@@ -70,7 +70,7 @@ for i, scriptInfo in ipairs(scripts) do
     button.TextColor3 = Color3.fromRGB(255, 255, 255)
     button.Font = Enum.Font.SourceSans
     button.TextSize = 22
-    button.Text = scriptInfo.name .. " - " .. scriptInfo.url
+    button.Text = scriptInfo.name
     button.Parent = scrollFrame
 
     button.MouseButton1Click:Connect(function()
