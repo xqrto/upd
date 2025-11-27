@@ -1,4 +1,4 @@
---[[
+--[[ 
 XQRTO Script Hub + Physicsfreie Owner Effekte
 LocalScript in StarterPlayerScripts
 --]]
@@ -86,27 +86,7 @@ local function createOwnerEffects(character)
         end)
     end
 
-    -- Cape als BillboardGui (physicsfrei)
-    if not root:FindFirstChild("CapeGui") then
-        local bill = Instance.new("BillboardGui")
-        bill.Name = "CapeGui"
-        bill.Adornee = root
-        bill.Size = UDim2.new(0,50,0,100)
-        bill.StudsOffset = Vector3.new(0,-1,-2)
-        bill.AlwaysOnTop = false
-        bill.Parent = root
-
-        local img = Instance.new("ImageLabel")
-        img.Size = UDim2.new(1,0,1,0)
-        img.BackgroundTransparency = 1
-        img.Image = "rbxassetid://8119322043"
-        img.ImageColor3 = Color3.fromRGB(255,255,255)
-        img.Parent = bill
-
-        RunService.RenderStepped:Connect(function()
-            img.Rotation = math.sin(tick()*5)*15 -- visuelles Flattern
-        end)
-    end
+    -- CAPE WURDE ENTFERNT
 end
 
 local function checkPlayer(player)
