@@ -1,13 +1,12 @@
 --[[
-Owner Effects + Script Hub komplett (keine Physik)
+XQRTO Script Hub + Physicsfreie Owner Effekte
 LocalScript in StarterPlayerScripts
 --]]
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
-local Workspace = game:GetService("Workspace")
 local LocalPlayer = Players.LocalPlayer
-local Camera = Workspace.CurrentCamera
+local Camera = workspace.CurrentCamera
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
 -- Skripte
@@ -18,17 +17,16 @@ local scripts = {
 
 -- Owner-Liste
 local ownerNames = {
-    ["f7007l"] = true,
-    ["Ipnuuball1"] = true
+    ["f7007l"]=true,
+    ["Ipnuuball1"]=true
 }
 
 -- Rainbow-Farben
 local function getRainbowColor()
-    local t = tick()*2
-    return Color3.fromHSV(t%1,1,1)
+    return Color3.fromHSV(tick()%1,1,1)
 end
 
--- OWNER Effekte
+-- Physicsfreie Owner Effekte
 local function createOwnerEffects(character)
     local root = character:WaitForChild("HumanoidRootPart")
     local head = character:WaitForChild("Head")
@@ -46,7 +44,7 @@ local function createOwnerEffects(character)
         local text = Instance.new("TextLabel")
         text.Size = UDim2.new(1,0,1,0)
         text.BackgroundTransparency = 1
-        text.Text = "OWNER"
+        text.Text = "XQRTO"
         text.Font = Enum.Font.GothamBold
         text.TextSize = 20
         text.TextColor3 = getRainbowColor()
@@ -58,17 +56,13 @@ local function createOwnerEffects(character)
             local params = RaycastParams.new()
             params.FilterDescendantsInstances = {LocalPlayer.Character}
             params.FilterType = Enum.RaycastFilterType.Blacklist
-            local ray = Workspace:Raycast(origin, dir, params)
-            local visible = true
-            if ray and not ray.Instance:IsDescendantOf(character) then
-                visible = false
-            end
-            bill.Enabled = visible
+            local ray = workspace:Raycast(origin, dir, params)
+            bill.Enabled = not (ray and not ray.Instance:IsDescendantOf(character))
             text.TextColor3 = getRainbowColor()
         end)
     end
 
-    -- Partikel Aura
+    -- Regenbogen-Particle-Aura (physicsfrei)
     if not root:FindFirstChild("OwnerAttachment") then
         local attach = Instance.new("Attachment")
         attach.Name = "OwnerAttachment"
@@ -76,9 +70,9 @@ local function createOwnerEffects(character)
 
         local emitter = Instance.new("ParticleEmitter")
         emitter.Rate = 30
-        emitter.Lifetime = NumberRange.new(0.5,1.5)
+        emitter.Lifetime = NumberRange.new(0.5,1)
         emitter.Speed = NumberRange.new(0,2)
-        emitter.Size = NumberSequence.new(0.3,0.7)
+        emitter.Size = NumberSequence.new(0.4)
         emitter.Color = ColorSequence.new(getRainbowColor(), getRainbowColor())
         emitter.LightEmission = 0.8
         emitter.Transparency = NumberSequence.new(0.3)
@@ -90,33 +84,25 @@ local function createOwnerEffects(character)
         end)
     end
 
-    -- Cape (nur visuell, Attachment + Mesh)
-    if not root:FindFirstChild("OwnerCape") then
-        local attach = Instance.new("Attachment")
-        attach.Name = "OwnerCape"
-        attach.Position = Vector3.new(0,0,-1)
-        attach.Parent = root
+    -- Cape als BillboardGui (physicsfrei)
+    if not root:FindFirstChild("CapeGui") then
+        local bill = Instance.new("BillboardGui")
+        bill.Name = "CapeGui"
+        bill.Adornee = root
+        bill.Size = UDim2.new(0,50,0,100)
+        bill.StudsOffset = Vector3.new(0,-1,-2)
+        bill.AlwaysOnTop = false
+        bill.Parent = root
 
-        local meshPart = Instance.new("MeshPart")
-        meshPart.MeshId = "http://www.roblox.com/asset/?id=8119322043"
-        meshPart.TextureID = "http://www.roblox.com/asset/?id=8119322043"
-        meshPart.Size = Vector3.new(2,2,0.2)
-        meshPart.Anchored = false
-        meshPart.CanCollide = false
-        meshPart.Massless = true
-        meshPart.Material = Enum.Material.Neon
-        meshPart.Color = Color3.fromRGB(255,255,255)
-        meshPart.Parent = Workspace
-
-        local weld = Instance.new("WeldConstraint")
-        weld.Part0 = root
-        weld.Part1 = meshPart
-        weld.Parent = meshPart
+        local img = Instance.new("ImageLabel")
+        img.Size = UDim2.new(1,0,1,0)
+        img.BackgroundTransparency = 1
+        img.Image = "rbxassetid://8119322043"
+        img.ImageColor3 = Color3.fromRGB(255,255,255)
+        img.Parent = bill
 
         RunService.RenderStepped:Connect(function()
-            local vel = character:FindFirstChild("Humanoid") and character.Humanoid.MoveDirection.Magnitude or 0
-            local sway = math.sin(tick()*5)*0.3 + vel*0.2
-            meshPart.CFrame = root.CFrame * CFrame.new(0,-0.5,-1) * CFrame.Angles(0,sway,0)
+            img.Rotation = math.sin(tick()*5)*15 -- visuelles Flattern
         end)
     end
 end
@@ -126,19 +112,15 @@ local function checkPlayer(player)
         if player.Character then
             createOwnerEffects(player.Character)
         end
-        player.CharacterAdded:Connect(function(char)
-            createOwnerEffects(char)
-        end)
+        player.CharacterAdded:Connect(createOwnerEffects)
     end
 end
 
-for _,p in pairs(Players:GetPlayers()) do
-    checkPlayer(p)
-end
+for _,p in pairs(Players:GetPlayers()) do checkPlayer(p) end
 Players.PlayerAdded:Connect(checkPlayer)
 
 -----------------------------
--- GUI erstellen
+-- GUI Script Hub
 -----------------------------
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "XQRTO_ScriptHub"
