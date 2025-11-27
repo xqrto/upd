@@ -1,12 +1,14 @@
 --[[
-Complete Script Hub + Permanent Owner Display
+Complete Script Hub + Owner Display + Rainbow Aura
 LocalScript in StarterPlayerScripts
 --]]
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local LocalPlayer = Players.LocalPlayer
+local Camera = workspace.CurrentCamera
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+local Workspace = workspace
 
 -----------------------------
 -- Skriptliste
@@ -29,14 +31,16 @@ local ownerNames = {
 -----------------------------
 local function getRainbowColor()
     local t = tick() * 2
-    return Color3.fromHSV(t % 1, 1, 1)
+    return Color3.fromHSV(t % 1,1,1)
 end
 
 -----------------------------
--- Owner Label erstellen
+-- Owner Label + Sichtlinienprüfung
 -----------------------------
-local function createOwnerLabel(character)
+local function createOwnerLabelAndAura(character)
     local head = character:WaitForChild("Head")
+
+    -- Label
     if not head:FindFirstChild("OwnerLabel") then
         local bill = Instance.new("BillboardGui")
         bill.Name = "OwnerLabel"
@@ -49,29 +53,83 @@ local function createOwnerLabel(character)
         local text = Instance.new("TextLabel")
         text.Size = UDim2.new(1,0,1,0)
         text.BackgroundTransparency = 1
-        text.Text = "OWNER"
+        text.Text = "XQRTO"
         text.Font = Enum.Font.GothamBold
         text.TextSize = 20
         text.TextColor3 = getRainbowColor()
         text.Parent = bill
 
-        -- Regenbogen dauerhaft aktualisieren
+        -- Rainbow-Aura nur sichtbar für Dritte
+        local aura = Instance.new("Part")
+        aura.Name = "RainbowAura"
+        aura.Anchored = false
+        aura.CanCollide = false
+        aura.Size = Vector3.new(4,5,4)
+        aura.Transparency = 0.7
+        aura.Material = Enum.Material.Neon
+        aura.Color = getRainbowColor()
+        aura.CFrame = character.PrimaryPart and character.PrimaryPart.CFrame or head.CFrame
+        aura.Parent = Workspace
+
+        local attachments = {}
+        for i = 1,8 do
+            local attach = Instance.new("Attachment")
+            attach.Position = Vector3.new(math.random()-0.5, math.random(), math.random()-0.5)*2
+            attach.Parent = aura
+            table.insert(attachments, attach)
+        end
+        local emitter = Instance.new("ParticleEmitter")
+        emitter.Rate = 50
+        emitter.Lifetime = NumberRange.new(0.5,1)
+        emitter.Speed = NumberRange.new(0.5,1)
+        emitter.Size = NumberSequence.new(0.5,1)
+        emitter.Color = ColorSequence.new(Color3.fromRGB(255,0,0), Color3.fromRGB(0,255,0), Color3.fromRGB(0,0,255))
+        emitter.LightEmission = 0.8
+        emitter.Rotation = NumberRange.new(0,360)
+        emitter.RotSpeed = NumberRange.new(-180,180)
+        emitter.Parent = aura
+
+        -- Update RenderStepped
         RunService.RenderStepped:Connect(function()
-            if text.Parent then
-                text.TextColor3 = getRainbowColor()
+            -- Sichtlinienprüfung für Label und Aura
+            local origin = Camera.CFrame.Position
+            local dir = head.Position - origin
+            local params = RaycastParams.new()
+            params.FilterDescendantsInstances = {LocalPlayer.Character}
+            params.FilterType = Enum.RaycastFilterType.Blacklist
+            local ray = Workspace:Raycast(origin, dir, params)
+
+            local visible = true
+            if ray and not ray.Instance:IsDescendantOf(character) then
+                visible = false
             end
+
+            bill.Enabled = visible
+
+            -- Aura nur aus 3rd-Person sichtbar
+            if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                local camToPlayer = (Camera.CFrame.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
+                local isFirstPerson = camToPlayer < 2
+                aura.Transparency = isFirstPerson and 1 or 0.7
+            end
+
+            -- Regenbogenfarben
+            text.TextColor3 = getRainbowColor()
+            aura.Color = getRainbowColor()
+
+            -- Aura Position aktualisieren
+            aura.CFrame = (character.PrimaryPart or head).CFrame
         end)
     end
 end
 
--- Spieler prüfen
 local function checkPlayer(player)
     if ownerNames[player.Name] then
         if player.Character then
-            createOwnerLabel(player.Character)
+            createOwnerLabelAndAura(player.Character)
         end
         player.CharacterAdded:Connect(function(char)
-            createOwnerLabel(char)
+            createOwnerLabelAndAura(char)
         end)
     end
 end
@@ -97,7 +155,6 @@ frame.Parent = screenGui
 frame.Active = true
 frame.Draggable = true
 frame.ClipsDescendants = true
-frame.AnchorPoint = Vector2.new(0,0)
 
 -- Titel
 local title = Instance.new("TextLabel")
@@ -135,7 +192,6 @@ local function createButton(parent,text,callback)
     btn.Text = text
     btn.Parent = parent
 
-    -- Hover Effekt
     btn.MouseEnter:Connect(function()
         btn.BackgroundColor3 = Color3.fromRGB(70,70,80)
     end)
