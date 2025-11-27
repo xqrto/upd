@@ -1,5 +1,5 @@
 --[[
-XQRTO Script Hub + Mega Owner Aura
+XQRTO Script Hub + Owner Effects + Cape
 LocalScript in StarterPlayerScripts
 --]]
 
@@ -35,11 +35,12 @@ local function getRainbowColor()
 end
 
 -----------------------------
--- Owner Label + Flammen-Aura
+-- Owner Label + Partikel + Cape
 -----------------------------
 local function createOwnerEffects(character)
     local root = character:WaitForChild("HumanoidRootPart")
     local head = character:WaitForChild("Head")
+    local humanoid = character:WaitForChild("Humanoid")
 
     -- OWNER Billboard
     if not head:FindFirstChild("OwnerLabel") then
@@ -60,27 +61,7 @@ local function createOwnerEffects(character)
         text.TextColor3 = getRainbowColor()
         text.Parent = bill
 
-        -- Mega Flammen-Aura
-        local auraFolder = Instance.new("Folder")
-        auraFolder.Name = "OwnerAura"
-        auraFolder.Parent = Workspace
-
-        local particleParts = {}
-        local NUM_PARTICLES = 30
-        for i=1,NUM_PARTICLES do
-            local p = Instance.new("Part")
-            p.Size = Vector3.new(0.5,0.5,0.5)
-            p.Anchored = true
-            p.CanCollide = false
-            p.Material = Enum.Material.Neon
-            p.Transparency = 0.3
-            p.Parent = auraFolder
-            table.insert(particleParts, p)
-        end
-
-        -- Update RenderStepped
         RunService.RenderStepped:Connect(function()
-            -- Sichtlinie prüfen
             local origin = Camera.CFrame.Position
             local dir = head.Position - origin
             local params = RaycastParams.new()
@@ -92,25 +73,72 @@ local function createOwnerEffects(character)
                 visible = false
             end
             bill.Enabled = visible
-
-            -- OWNER Label Rainbow
             text.TextColor3 = getRainbowColor()
+        end)
+    end
 
-            -- Aura nur aus 3rd Person
-            local isFirstPerson = (Camera.CFrame.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude < 2
-            for i,part in pairs(particleParts) do
-                if isFirstPerson then
-                    part.Transparency = 1
-                else
-                    part.Transparency = 0.3
-                    -- Position randomisiert um RootPart
-                    local angle = i/NUM_PARTICLES * math.pi*2 + tick()
-                    local radius = 3
-                    local height = math.sin(tick()*2+i)*2
-                    part.Position = root.Position + Vector3.new(math.cos(angle)*radius, height, math.sin(angle)*radius)
-                    -- Regenbogen
-                    part.Color = getRainbowColor()
-                end
+    -- Partikel-Aura
+    local auraFolder = Instance.new("Folder")
+    auraFolder.Name = "OwnerAura"
+    auraFolder.Parent = Workspace
+
+    local particleParts = {}
+    local NUM_PARTICLES = 30
+    for i=1,NUM_PARTICLES do
+        local p = Instance.new("Part")
+        p.Size = Vector3.new(0.4,0.4,0.4)
+        p.Anchored = true
+        p.CanCollide = false
+        p.Material = Enum.Material.Neon
+        p.Transparency = 0.3
+        p.Parent = auraFolder
+        table.insert(particleParts,p)
+    end
+
+    RunService.RenderStepped:Connect(function()
+        local isFirstPerson = (Camera.CFrame.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude < 2
+        for i,part in pairs(particleParts) do
+            if isFirstPerson then
+                part.Transparency = 1
+            else
+                part.Transparency = 0.3
+                local angle = i/NUM_PARTICLES * math.pi*2 + tick()
+                local radius = 2 + math.sin(tick()*2+i)
+                local height = math.sin(tick()*2+i)*2
+                part.Position = root.Position + Vector3.new(math.cos(angle)*radius,height,math.sin(angle)*radius)
+                part.Color = getRainbowColor()
+            end
+        end
+    end)
+
+    -- Cape
+    if not root:FindFirstChild("OwnerCape") then
+        local cape = Instance.new("Part")
+        cape.Name = "OwnerCape"
+        cape.Size = Vector3.new(1,2,0.2)
+        cape.Anchored = false
+        cape.CanCollide = false
+        cape.Material = Enum.Material.Neon
+        cape.Color = Color3.fromRGB(255,255,255)
+        cape.Parent = Workspace
+
+        local mesh = Instance.new("SpecialMesh")
+        mesh.MeshType = Enum.MeshType.FileMesh
+        mesh.MeshId = "http://www.roblox.com/asset/?id=8119322043"
+        mesh.TextureId = "http://www.roblox.com/asset/?id=8119322043"
+        mesh.Scale = Vector3.new(2,2,1)
+        mesh.Parent = cape
+
+        local weld = Instance.new("WeldConstraint")
+        weld.Part0 = root
+        weld.Part1 = cape
+        weld.Parent = cape
+
+        RunService.RenderStepped:Connect(function()
+            if root and cape then
+                local vel = humanoid.MoveDirection.Magnitude
+                local sway = math.sin(tick()*5)*0.3 + vel*0.2
+                cape.CFrame = root.CFrame * CFrame.new(0,-0.5,-1) * CFrame.Angles(0,sway,0)
             end
         end)
     end
@@ -149,7 +177,6 @@ frame.Active = true
 frame.Draggable = true
 frame.ClipsDescendants = true
 
--- Titel
 local title = Instance.new("TextLabel")
 title.Size = UDim2.new(1,0,0,50)
 title.Position = UDim2.new(0,0,0,0)
@@ -160,7 +187,6 @@ title.Font = Enum.Font.GothamBold
 title.TextSize = 26
 title.Parent = frame
 
--- ScrollFrame
 local scrollFrame = Instance.new("ScrollingFrame")
 scrollFrame.Size = UDim2.new(1,-20,1,-60)
 scrollFrame.Position = UDim2.new(0,10,0,50)
@@ -173,7 +199,6 @@ layout.SortOrder = Enum.SortOrder.LayoutOrder
 layout.Padding = UDim.new(0,8)
 layout.Parent = scrollFrame
 
--- Button erstellen
 local function createButton(parent,text,callback)
     local btn = Instance.new("TextButton")
     btn.Size = UDim2.new(1,0,0,45)
@@ -209,7 +234,6 @@ local function loadScript(url)
     end
 end
 
--- Buttons erstellen
 for _,s in ipairs(scripts) do
     createButton(scrollFrame,s.name,function()
         screenGui:Destroy()
@@ -217,7 +241,6 @@ for _,s in ipairs(scripts) do
     end)
 end
 
--- Dynamische CanvasSize
 scrollFrame.CanvasSize = UDim2.new(0,0,0,layout.AbsoluteContentSize.Y + 10)
 layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
     scrollFrame.CanvasSize = UDim2.new(0,0,0,layout.AbsoluteContentSize.Y + 10)
