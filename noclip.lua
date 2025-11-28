@@ -1,42 +1,76 @@
--- True NoClip LocalScript (normal laufen)
+-- Robust NoClip GUI
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
-local UserInputService = game:GetService("UserInputService")
 
 local player = Players.LocalPlayer
-local character = player.Character or player.CharacterAdded:Wait()
-local humanoid = character:WaitForChild("Humanoid")
-local hrp = character:WaitForChild("HumanoidRootPart")
 
-local noclip = false
+-- GUI
+local gui = Instance.new("ScreenGui")
+gui.Name = "NoClipGUI"
+gui.ResetOnSpawn = false
+gui.Parent = player:WaitForChild("PlayerGui")
 
--- Toggle mit N
-UserInputService.InputBegan:Connect(function(input, gameProcessed)
-    if gameProcessed then return end
-    if input.KeyCode == Enum.KeyCode.N then
-        noclip = not noclip
-        if noclip then
-            humanoid:ChangeState(Enum.HumanoidStateType.Physics)
-        else
-            humanoid:ChangeState(Enum.HumanoidStateType.GettingUp)
-        end
-    end
-end)
+local frame = Instance.new("Frame", gui)
+frame.Size = UDim2.new(0,200,0,100)
+frame.Position = UDim2.new(0,20,0,20)
+frame.BackgroundColor3 = Color3.fromRGB(30,30,30)
+frame.BorderSizePixel = 0
+frame.Active = true
+frame.Draggable = true
 
--- RunService Loop
-RunService.Stepped:Connect(function()
-    if character and character.Parent then
-        for _, part in pairs(character:GetDescendants()) do
-            if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
-                part.CanCollide = not noclip
+local title = Instance.new("TextLabel", frame)
+title.Size = UDim2.new(1,0,0,30)
+title.Position = UDim2.new(0,0,0,0)
+title.BackgroundTransparency = 1
+title.Text = "NoClip"
+title.TextColor3 = Color3.fromRGB(255,255,255)
+title.Font = Enum.Font.SourceSansBold
+title.TextSize = 20
+
+local toggleBtn = Instance.new("TextButton", frame)
+toggleBtn.Size = UDim2.new(0,180,0,40)
+toggleBtn.Position = UDim2.new(0,10,0,40)
+toggleBtn.Text = "Toggle NoClip"
+toggleBtn.BackgroundColor3 = Color3.fromRGB(50,50,50)
+toggleBtn.TextColor3 = Color3.fromRGB(255,255,255)
+toggleBtn.Font = Enum.Font.SourceSans
+toggleBtn.TextSize = 18
+
+-- NoClip Logic
+local Clip = true
+local NoclipConnection = nil
+
+local function setCollisions(state)
+    if player.Character then
+        for _,v in pairs(player.Character:GetDescendants()) do
+            if v:IsA("BasePart") and v ~= player.Character:FindFirstChild("HumanoidRootPart") then
+                v.CanCollide = state
             end
         end
     end
-end)
+end
 
--- Respawn Handhabung
-player.CharacterAdded:Connect(function(char)
-    character = char
-    humanoid = character:WaitForChild("Humanoid")
-    hrp = character:WaitForChild("HumanoidRootPart")
+local function noclip()
+    Clip = false
+    if NoclipConnection then NoclipConnection:Disconnect() end
+    NoclipConnection = RunService.Stepped:Connect(function()
+        setCollisions(false)
+    end)
+end
+
+local function clip()
+    Clip = true
+    if NoclipConnection then NoclipConnection:Disconnect() end
+    -- Sanftes Reaktivieren: kurz warten, damit Physics sich stabilisiert
+    setCollisions(true)
+end
+
+toggleBtn.MouseButton1Click:Connect(function()
+    if Clip then
+        noclip()
+        toggleBtn.Text = "NoClip ON"
+    else
+        clip()
+        toggleBtn.Text = "NoClip OFF"
+    end
 end)
