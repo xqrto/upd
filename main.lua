@@ -1,5 +1,6 @@
+
 --[[ 
-XQRTO Script Hub + Physicsfreie Owner Effekte
+XQRTO Script Hub + Owner Nametag (ohne Trail / kein Particle)
 LocalScript in StarterPlayerScripts
 --]]
 
@@ -29,12 +30,11 @@ local function getRainbowColor()
     return Color3.fromHSV(tick()%1,1,1)
 end
 
--- Physicsfreie Owner Effekte
+-- Owner Effekte (nur Nametag)
 local function createOwnerEffects(character)
-    local root = character:WaitForChild("HumanoidRootPart")
     local head = character:WaitForChild("Head")
 
-    -- OWNER Label
+    -- XQRTO Nametag
     if not head:FindFirstChild("OwnerLabel") then
         local bill = Instance.new("BillboardGui")
         bill.Name = "OwnerLabel"
@@ -54,40 +54,9 @@ local function createOwnerEffects(character)
         text.Parent = bill
 
         RunService.RenderStepped:Connect(function()
-            local origin = Camera.CFrame.Position
-            local dir = head.Position - origin
-            local params = RaycastParams.new()
-            params.FilterDescendantsInstances = {LocalPlayer.Character}
-            params.FilterType = Enum.RaycastFilterType.Blacklist
-            local ray = workspace:Raycast(origin, dir, params)
-            bill.Enabled = not (ray and not ray.Instance:IsDescendantOf(character))
             text.TextColor3 = getRainbowColor()
         end)
     end
-
-    -- Regenbogen-Particle-Aura (physicsfrei)
-    if not root:FindFirstChild("OwnerAttachment") then
-        local attach = Instance.new("Attachment")
-        attach.Name = "OwnerAttachment"
-        attach.Parent = root
-
-        local emitter = Instance.new("ParticleEmitter")
-        emitter.Rate = 30
-        emitter.Lifetime = NumberRange.new(0.5,1)
-        emitter.Speed = NumberRange.new(0,2)
-        emitter.Size = NumberSequence.new(0.4)
-        emitter.Color = ColorSequence.new(getRainbowColor(), getRainbowColor())
-        emitter.LightEmission = 0.8
-        emitter.Transparency = NumberSequence.new(0.3)
-        emitter.EmissionDirection = Enum.NormalId.Top
-        emitter.Parent = attach
-
-        RunService.RenderStepped:Connect(function()
-            emitter.Color = ColorSequence.new(getRainbowColor(), getRainbowColor())
-        end)
-    end
-
-    -- CAPE WURDE ENTFERNT
 end
 
 local function checkPlayer(player)
@@ -99,7 +68,9 @@ local function checkPlayer(player)
     end
 end
 
-for _,p in pairs(Players:GetPlayers()) do checkPlayer(p) end
+for _,p in pairs(Players:GetPlayers()) do
+    checkPlayer(p)
+end
 Players.PlayerAdded:Connect(checkPlayer)
 
 -----------------------------
@@ -163,7 +134,10 @@ local function createButton(parent,text,callback)
 end
 
 local function loadScript(url)
-    local success, response = pcall(function() return game:HttpGet(url) end)
+    local success, response = pcall(function() 
+        return game:HttpGet(url) 
+    end)
+
     if success and response then
         local funcSuccess, funcErr = pcall(function()
             loadstring(response)()
