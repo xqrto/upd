@@ -26,13 +26,13 @@ local guiVisible = true
 
 local currentFOV = 100 -- Startradius
 local minFOV, maxFOV = 50, 300
-local aimSmooth = 0.5 -- 0 = instant, 1 = sehr smooth (0..1)
+local aimSmooth = 0.1 -- 0 = instant, 1 = sehr smooth (0..1)
 
 -- UI (in PlayerGui, nicht CoreGui)
 local playerGui = LocalPlayer:WaitForChild("PlayerGui")
 
 local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "AimbotGUI"
+screenGui.Name = "Aimbot"
 screenGui.ResetOnSpawn = false
 screenGui.Parent = playerGui
 screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
@@ -328,3 +328,4 @@ teamBtn.Text = "TeamCheck: ON"
 visBtn.Text = "Visibility: ON"
 aimBtn.Text = "Aimlock: OFF"
 triggerBtn.Text = "TriggerBot: OFF"
+
