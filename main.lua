@@ -1,9 +1,3 @@
-
---[[ 
-XQRTO Script Hub + Owner Nametag (ohne Trail / kein Particle)
-LocalScript in StarterPlayerScripts
---]]
-
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local LocalPlayer = Players.LocalPlayer
@@ -19,22 +13,18 @@ local scripts = {
     {name = "Tracer", url = "https://raw.githubusercontent.com/xqrto/upd/main/tracer.lua"},
 }
 
--- Owner-Liste
 local ownerNames = {
     ["f7007l"]=true,
     ["Ipnuuball1"]=true
 }
 
--- Rainbow-Farben
 local function getRainbowColor()
     return Color3.fromHSV(tick()%1,1,1)
 end
 
--- Owner Effekte (nur Nametag)
 local function createOwnerEffects(character)
     local head = character:WaitForChild("Head")
 
-    -- XQRTO Nametag
     if not head:FindFirstChild("OwnerLabel") then
         local bill = Instance.new("BillboardGui")
         bill.Name = "OwnerLabel"
@@ -73,9 +63,6 @@ for _,p in pairs(Players:GetPlayers()) do
 end
 Players.PlayerAdded:Connect(checkPlayer)
 
------------------------------
--- GUI Script Hub
------------------------------
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "XQRTO_ScriptHub"
 screenGui.Parent = PlayerGui
