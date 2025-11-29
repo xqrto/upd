@@ -1,4 +1,4 @@
---// ====== KOMPLETTES RAINBOW ESP SYSTEM ====== //--
+
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -7,16 +7,13 @@ local LocalPlayer = Players.LocalPlayer
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 local camera = workspace.CurrentCamera
 
--- SETTINGS
+
 local tracersOn = true
 local boxesOn = true
 local teamCheck = true
 
 local espData = {}
 
-----------------------------------------------------------------------
--- GUI ERSTELLEN
-----------------------------------------------------------------------
 
 local ScreenGui = Instance.new("ScreenGui", PlayerGui)
 ScreenGui.Name = "RainbowESP_GUI"
@@ -36,7 +33,6 @@ Title.TextSize = 20
 Title.Text = "Rainbow ESP"
 Title.TextColor3 = Color3.new(1,1,1)
 
--- TRACER BUTTON
 local TracerToggle = Instance.new("TextButton", Frame)
 TracerToggle.Position = UDim2.new(0,10,0,50)
 TracerToggle.Size = UDim2.new(0,200,0,30)
@@ -49,7 +45,6 @@ TracerToggle.MouseButton1Click:Connect(function()
     TracerToggle.Text = "Tracer: " .. (tracersOn and "ON" or "OFF")
 end)
 
--- BOX BUTTON
 local BoxToggle = Instance.new("TextButton", Frame)
 BoxToggle.Position = UDim2.new(0,10,0,90)
 BoxToggle.Size = UDim2.new(0,200,0,30)
@@ -62,7 +57,6 @@ BoxToggle.MouseButton1Click:Connect(function()
     BoxToggle.Text = "Box ESP: " .. (boxesOn and "ON" or "OFF")
 end)
 
--- TEAM FLAG BUTTON
 local TeamToggle = Instance.new("TextButton", Frame)
 TeamToggle.Position = UDim2.new(0,10,0,130)
 TeamToggle.Size = UDim2.new(0,200,0,30)
@@ -75,7 +69,6 @@ TeamToggle.MouseButton1Click:Connect(function()
     TeamToggle.Text = "Team Flag: " .. (teamCheck and "ON" or "OFF")
 end)
 
--- GUI SCHLIESSEN
 local CloseButton = Instance.new("TextButton", Frame)
 CloseButton.Position = UDim2.new(0,10,0,170)
 CloseButton.Size = UDim2.new(0,200,0,30)
@@ -83,7 +76,6 @@ CloseButton.BackgroundColor3 = Color3.fromRGB(60,0,0)
 CloseButton.TextColor3 = Color3.new(1,1,1)
 CloseButton.Text = "GUI schließen"
 
--- KLEINER KREIS ZUM ÖFFNEN
 local Reopen = Instance.new("TextButton", ScreenGui)
 Reopen.Size = UDim2.new(0,30,0,30)
 Reopen.Position = UDim2.new(0,10,0,250)
@@ -102,10 +94,6 @@ Reopen.MouseButton1Click:Connect(function()
     Frame.Visible = true
     Reopen.Visible = false
 end)
-
-----------------------------------------------------------------------
--- ESP SYSTEM
-----------------------------------------------------------------------
 
 local function getRainbow()
     return Color3.fromHSV((tick() * 0.4) % 1, 1, 1)
@@ -144,10 +132,6 @@ for _,p in ipairs(Players:GetPlayers()) do
     createESP(p)
 end
 
-----------------------------------------------------------------------
--- UPDATE LOOP
-----------------------------------------------------------------------
-
 RunService.RenderStepped:Connect(function()
     for plr,objects in pairs(espData) do
         local char = plr.Character
@@ -158,7 +142,6 @@ RunService.RenderStepped:Connect(function()
             continue
         end
 
-        -- TEAMCHECK
         if teamCheck and plr.Team == LocalPlayer.Team then
             objects.tracer.Visible = false
             objects.box.Visible = false
@@ -174,7 +157,6 @@ RunService.RenderStepped:Connect(function()
 
         local rainbow = getRainbow()
 
-        -- TRACER
         if tracersOn then
             objects.tracer.Visible = true
             objects.tracer.Color = rainbow
@@ -189,7 +171,6 @@ RunService.RenderStepped:Connect(function()
             objects.tracer.Visible = false
         end
 
-        -- BOX
         if boxesOn then
             objects.box.Visible = true
             objects.box.Color = rainbow
