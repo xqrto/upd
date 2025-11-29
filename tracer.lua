@@ -1,20 +1,17 @@
-
-
+-- Services
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
-local UIS = game:GetService("UserInputService")
 local LocalPlayer = Players.LocalPlayer
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
-local camera = workspace.CurrentCamera
+local Camera = workspace.CurrentCamera
 
-
+-- Settings
 local tracersOn = true
 local boxesOn = true
 local teamCheck = true
-
 local espData = {}
 
-
+-- GUI
 local ScreenGui = Instance.new("ScreenGui", PlayerGui)
 ScreenGui.Name = "RainbowESP_GUI"
 
@@ -33,48 +30,22 @@ Title.TextSize = 20
 Title.Text = "Rainbow ESP"
 Title.TextColor3 = Color3.new(1,1,1)
 
-local TracerToggle = Instance.new("TextButton", Frame)
-TracerToggle.Position = UDim2.new(0,10,0,50)
-TracerToggle.Size = UDim2.new(0,200,0,30)
-TracerToggle.BackgroundColor3 = Color3.fromRGB(40,40,40)
-TracerToggle.Text = "Tracer: ON"
-TracerToggle.TextColor3 = Color3.new(1,1,1)
+-- Buttons
+local function createButton(parent, y, text)
+    local btn = Instance.new("TextButton", parent)
+    btn.Position = UDim2.new(0,10,0,y)
+    btn.Size = UDim2.new(0,200,0,30)
+    btn.BackgroundColor3 = Color3.fromRGB(40,40,40)
+    btn.Text = text
+    btn.TextColor3 = Color3.new(1,1,1)
+    return btn
+end
 
-TracerToggle.MouseButton1Click:Connect(function()
-    tracersOn = not tracersOn
-    TracerToggle.Text = "Tracer: " .. (tracersOn and "ON" or "OFF")
-end)
-
-local BoxToggle = Instance.new("TextButton", Frame)
-BoxToggle.Position = UDim2.new(0,10,0,90)
-BoxToggle.Size = UDim2.new(0,200,0,30)
-BoxToggle.BackgroundColor3 = Color3.fromRGB(40,40,40)
-BoxToggle.Text = "Box ESP: ON"
-BoxToggle.TextColor3 = Color3.new(1,1,1)
-
-BoxToggle.MouseButton1Click:Connect(function()
-    boxesOn = not boxesOn
-    BoxToggle.Text = "Box ESP: " .. (boxesOn and "ON" or "OFF")
-end)
-
-local TeamToggle = Instance.new("TextButton", Frame)
-TeamToggle.Position = UDim2.new(0,10,0,130)
-TeamToggle.Size = UDim2.new(0,200,0,30)
-TeamToggle.BackgroundColor3 = Color3.fromRGB(40,40,40)
-TeamToggle.Text = "Team Flag: ON"
-TeamToggle.TextColor3 = Color3.new(1,1,1)
-
-TeamToggle.MouseButton1Click:Connect(function()
-    teamCheck = not teamCheck
-    TeamToggle.Text = "Team Flag: " .. (teamCheck and "ON" or "OFF")
-end)
-
-local CloseButton = Instance.new("TextButton", Frame)
-CloseButton.Position = UDim2.new(0,10,0,170)
-CloseButton.Size = UDim2.new(0,200,0,30)
+local TracerToggle = createButton(Frame,50,"Tracer: ON")
+local BoxToggle = createButton(Frame,90,"Box ESP: ON")
+local TeamToggle = createButton(Frame,130,"Team Flag: ON")
+local CloseButton = createButton(Frame,170,"GUI schließen")
 CloseButton.BackgroundColor3 = Color3.fromRGB(60,0,0)
-CloseButton.TextColor3 = Color3.new(1,1,1)
-CloseButton.Text = "GUI schließen"
 
 local Reopen = Instance.new("TextButton", ScreenGui)
 Reopen.Size = UDim2.new(0,30,0,30)
@@ -84,6 +55,22 @@ Reopen.BorderSizePixel = 0
 Reopen.Text = ""
 Reopen.Visible = false
 Reopen.Draggable = true
+
+-- Button functionality
+TracerToggle.MouseButton1Click:Connect(function()
+    tracersOn = not tracersOn
+    TracerToggle.Text = "Tracer: " .. (tracersOn and "ON" or "OFF")
+end)
+
+BoxToggle.MouseButton1Click:Connect(function()
+    boxesOn = not boxesOn
+    BoxToggle.Text = "Box ESP: " .. (boxesOn and "ON" or "OFF")
+end)
+
+TeamToggle.MouseButton1Click:Connect(function()
+    teamCheck = not teamCheck
+    TeamToggle.Text = "Team Flag: " .. (teamCheck and "ON" or "OFF")
+end)
 
 CloseButton.MouseButton1Click:Connect(function()
     Frame.Visible = false
@@ -95,10 +82,16 @@ Reopen.MouseButton1Click:Connect(function()
     Reopen.Visible = false
 end)
 
-local function getRainbow()
-    return Color3.fromHSV((tick() * 0.4) % 1, 1, 1)
-end
+-- Rainbow loop (less CPU usage)
+local rainbowColor = Color3.new(1,1,1)
+spawn(function()
+    while true do
+        rainbowColor = Color3.fromHSV((tick() * 0.4) % 1, 1, 1)
+        wait(0.1)
+    end
+end)
 
+-- ESP creation/removal
 local function createESP(plr)
     if plr == LocalPlayer or espData[plr] then return end
 
@@ -132,52 +125,58 @@ for _,p in ipairs(Players:GetPlayers()) do
     createESP(p)
 end
 
+-- Optimized ESP update
 RunService.RenderStepped:Connect(function()
+    local cameraPos = Camera.CFrame.Position
+    local localRoot = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+    if not localRoot then return end
+    local localScreenPos, _ = Camera:WorldToViewportPoint(localRoot.Position)
+
     for plr,objects in pairs(espData) do
         local char = plr.Character
         local root = char and char:FindFirstChild("HumanoidRootPart")
+
         if not root then
             objects.tracer.Visible = false
             objects.box.Visible = false
             continue
         end
 
+        -- Team check
         if teamCheck and plr.Team == LocalPlayer.Team then
             objects.tracer.Visible = false
             objects.box.Visible = false
             continue
         end
 
-        local pos, vis = camera:WorldToViewportPoint(root.Position)
-        if not vis then
+        -- Distance cull (optional, improves performance)
+        if (root.Position - cameraPos).Magnitude > 300 then
             objects.tracer.Visible = false
             objects.box.Visible = false
             continue
         end
 
-        local rainbow = getRainbow()
-
-        if tracersOn then
-            objects.tracer.Visible = true
-            objects.tracer.Color = rainbow
-
-            local foot = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-            if foot then
-                local footpos = camera:WorldToViewportPoint(foot.Position)
-                objects.tracer.From = Vector2.new(footpos.X, footpos.Y)
-                objects.tracer.To = Vector2.new(pos.X, pos.Y)
-            end
-        else
+        local screenPos, onScreen = Camera:WorldToViewportPoint(root.Position)
+        if not onScreen then
             objects.tracer.Visible = false
+            objects.box.Visible = false
+            continue
         end
 
+        -- Update Tracer
+        objects.tracer.Visible = tracersOn
+        if tracersOn then
+            objects.tracer.Color = rainbowColor
+            objects.tracer.From = Vector2.new(localScreenPos.X, localScreenPos.Y)
+            objects.tracer.To = Vector2.new(screenPos.X, screenPos.Y)
+        end
+
+        -- Update Box
+        objects.box.Visible = boxesOn
         if boxesOn then
-            objects.box.Visible = true
-            objects.box.Color = rainbow
+            objects.box.Color = rainbowColor
             objects.box.Size = Vector2.new(50,70)
-            objects.box.Position = Vector2.new(pos.X - 25, pos.Y - 50)
-        else
-            objects.box.Visible = false
+            objects.box.Position = Vector2.new(screenPos.X - 25, screenPos.Y - 50)
         end
     end
 end)
