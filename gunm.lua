@@ -10,7 +10,7 @@ local Camera = Workspace.CurrentCamera
 
 -- ===== GUI =====
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "GunModsGUI"
+ScreenGui.Name = "GunMods (xqrto)"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = PlayerGui
 
