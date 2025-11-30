@@ -53,7 +53,7 @@ frame.Parent = gui
 
 local title = Instance.new("TextLabel")
 title.Size = UDim2.new(1, 0, 0, 35)
-title.Text = "FREECAM PANEL"
+title.Text = "FREECAM (xqrto)"
 title.TextColor3 = Color3.new(1, 1, 1)
 title.Font = Enum.Font.SourceSansBold
 title.TextSize = 20
