@@ -16,7 +16,7 @@ end
 
 -- Nach 5 Sekunden Notification anzeigen
 task.delay(5, function()
-    notify("Drücke Alt, um das Script-Hub zu öffnen oder zu schließen")
+    notify("Press (ALT) to open the Menu")
 end)
 
 -- Funktion zum Laden und Ausführen eines Scripts vom URL
