@@ -53,7 +53,7 @@ local function createGUI()
     mainFrame.ClipsDescendants = true
 
     -- Tabs-Buttons
-    local tabNames = {"xqrtp", "Mods", "Items", "Cosmetics"}
+    local tabNames = {"xqrtp", "Mods", "Items", "extras"}
     local tabs = {}
     local tabButtonsParent = Instance.new("Frame")
     tabButtonsParent.Size = UDim2.new(1, 0, 0, 30)
@@ -165,7 +165,7 @@ local function createGUI()
     }
 
     local CcosmeticButtons = {
-        {name = "Nothing", url = "https://raw.githubusercontent.com/xqrto/upd/main/.lua"},
+        {name = "fling", url = "https://raw.githubusercontent.com/xqrto/upd/main/.lua"},
         -- weitere Cosmeticals hier
     }
 
