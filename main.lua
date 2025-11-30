@@ -195,7 +195,7 @@ local function createGUI()
     }
 
     local ItemButtons = {
-        {name = "Nothing", url = "https://raw.githubusercontent.com/xqrto/upd/main/.lua"},
+        {name = "Telikinesis", url = "https://raw.githubusercontent.com/xqrto/upd/main/telikinesis.lua"},
     }
 
     local CcosmeticButtons = {
