@@ -199,8 +199,7 @@ local function createGUI()
         {name="NoClip",url="https://raw.githubusercontent.com/xqrto/upd/main/noclip.lua"},
         {name="FreeCam",url="https://raw.githubusercontent.com/xqrto/upd/main/freecam.lua"},
         {name="Fly",url="https://raw.githubusercontent.com/xqrto/upd/main/fly.lua"},
-        {name="Tracer",url="https://raw.githubusercontent.com/xqrto/upd/main/tracer.lua"},
-        {name="-",url="https://raw.githubusercontent.com/xqrto/upd/main/.lua"}
+        {name="Tracer",url="https://raw.githubusercontent.com/xqrto/upd/main/tracer.lua"}
     }
     local ItemButtons = {{name="Telikinesis",url="https://raw.githubusercontent.com/xqrto/upd/main/telikinesis.lua"}}
     local CcosmeticButtons = {{name="fling",url="https://raw.githubusercontent.com/xqrto/upd/main/fling.lua"}}
