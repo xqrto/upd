@@ -8,6 +8,7 @@ local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 local scripts = {
     {name = "AimBot", url = "https://raw.githubusercontent.com/xqrto/upd/main/fefrwdeu.lua"},
     {name = "AimBot-old", url = "https://raw.githubusercontent.com/xqrto/upd/main/Aimbotvone.lua"},
+    {name = "Gun-Mods", url = "https://raw.githubusercontent.com/xqrto/upd/main/gunm.lua"},
     {name = "NoClip", url = "https://raw.githubusercontent.com/xqrto/upd/main/noclip.lua"},
     {name = "FreeCam", url = "https://raw.githubusercontent.com/xqrto/upd/main/freecam.lua"},
     {name = "Fly", url = "https://raw.githubusercontent.com/xqrto/upd/main/fly.lua"},
