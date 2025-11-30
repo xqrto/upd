@@ -53,7 +53,7 @@ local function createGUI()
     mainFrame.ClipsDescendants = true
 
     -- Tabs-Buttons
-    local tabNames = {"xqrtp", "Mods", "Items", "extras"}
+    local tabNames = {"xqrto", "Mods", "Items", "extras"}
     local tabs = {}
     local tabButtonsParent = Instance.new("Frame")
     tabButtonsParent.Size = UDim2.new(1, 0, 0, 30)
