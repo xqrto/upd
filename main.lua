@@ -201,8 +201,12 @@ local function createGUI()
         {name="Fly",url="https://raw.githubusercontent.com/xqrto/upd/main/fly.lua"},
         {name="Tracer",url="https://raw.githubusercontent.com/xqrto/upd/main/tracer.lua"}
     }
-    local ItemButtons = {{name="Telikinesis",url="https://raw.githubusercontent.com/xqrto/upd/main/telikinesis.lua"}}
-    local CcosmeticButtons = {{name="fling",url="https://raw.githubusercontent.com/xqrto/upd/main/fling.lua"}}
+    local ItemButtons = {
+        {name="Telikinesis",url="https://raw.githubusercontent.com/xqrto/upd/main/telikinesis.lua"}
+    }
+    local CcosmeticButtons = {
+        {name="fling",url="https://raw.githubusercontent.com/xqrto/upd/main/fling.lua"}
+    }
 
     local function createButton(parent,text,callback)
         local btn=Instance.new("TextButton")
