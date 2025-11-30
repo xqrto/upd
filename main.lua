@@ -7,6 +7,7 @@ local UserInputService = game:GetService("UserInputService")
 local StarterGui = game:GetService("StarterGui")
 local HttpService = game:GetService("HttpService")
 local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
 
 local LocalPlayer = Players.LocalPlayer
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
@@ -42,12 +43,37 @@ local function executeScriptFromURL(url)
     end
 end
 
+
 -- --- Create GUI
 local function createGUI()
     local screenGui = Instance.new("ScreenGui")
     screenGui.Name = "XQRTO_ScriptHub"
     screenGui.Parent = PlayerGui
     screenGui.Enabled = false -- start hidden
+
+    local titleBar = Instance.new("Frame")
+    titleBar.Name = "TitleBar"
+    titleBar.Size = UDim2.new(1, 0, 0, 30) -- Höhe 30px, volle Breite
+    titleBar.Position = UDim2.new(0, 0, 0, 0)
+    titleBar.BackgroundColor3 = Color3.fromRGB(50, 50, 55)
+    titleBar.Parent = mainFrame
+
+    local titleLabel = Instance.new("TextLabel")
+    titleLabel.Size = UDim2.new(1, -10, 1, 0)
+    titleLabel.Position = UDim2.new(0, 5, 0, 0)
+    titleLabel.BackgroundTransparency = 1
+    titleLabel.Text = "X-ScriptHub"
+    titleLabel.Font = Enum.Font.GothamBold
+    titleLabel.TextSize = 16
+    titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    titleLabel.Parent = titleBar
+
+    local titleCorner = Instance.new("UICorner")
+    titleCorner.CornerRadius = UDim.new(0, 12)
+    titleCorner.Parent = titleBar
+    titleBar.Active = true
+    titleBar.Draggable = true
+
 
     -- Main window
     local mainFrame = Instance.new("Frame")
@@ -57,7 +83,7 @@ local function createGUI()
     mainFrame.BorderSizePixel = 0
     mainFrame.Parent = screenGui
     mainFrame.Active = true
-    mainFrame.Draggable = true
+    mainFrame.Draggable = false
     mainFrame.ClipsDescendants = true
     mainFrame.Name = "MainFrame"
 
@@ -701,7 +727,40 @@ local myGUI = createGUI()
 
 -- Toggle function
 local function toggleGUI()
-    myGUI.Enabled = not myGUI.Enabled
+    if myGUI.Enabled then
+        -- Closing GUI: just fade out smoothly
+        local closeTween = TweenService:Create(
+            myGUI.MainFrame,
+            TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.In),
+            {Size = UDim2.new(0, 0, 0, 0), Position = UDim2.new(0.5, 0, 0.5, 0), BackgroundTransparency = 1}
+        )
+        closeTween:Play()
+        closeTween.Completed:Connect(function()
+            myGUI.Enabled = false
+            -- reset size and position for next open
+            myGUI.MainFrame.Size = UDim2.new(0, 520, 0, 420)
+            myGUI.MainFrame.Position = UDim2.new(0.25, 0, 0.18, 0)
+            myGUI.MainFrame.BackgroundTransparency = 0
+        end)
+    else
+        -- Opening GUI
+        myGUI.Enabled = true
+        local frame = myGUI.MainFrame
+
+        -- Initial small size, invisible
+        frame.Size = UDim2.new(0, 350, 0, 280)
+        frame.Position = UDim2.new(0.5, -175, 0.5, -140)
+        frame.BackgroundTransparency = 1
+
+        -- Fade + bounce + shake sequence
+        local tween1 = TweenService:Create(frame, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Size = UDim2.new(0, 540, 0, 440), Position = UDim2.new(0.245, 0, 0.17, 0), BackgroundTransparency = 0})
+        local tween2 = TweenService:Create(frame, TweenInfo.new(0.15, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Size = UDim2.new(0, 520, 0, 420), Position = UDim2.new(0.25, 0, 0.18, 0)})
+
+        tween1:Play()
+        tween1.Completed:Connect(function()
+            tween2:Play()
+        end)
+    end
 end
 
 -- Alt hotkey toggles the GUI
