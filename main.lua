@@ -165,7 +165,7 @@ local function createGUI()
     }
 
     local CcosmeticButtons = {
-        {name = "fling", url = "https://raw.githubusercontent.com/xqrto/upd/main/.lua"},
+        {name = "fling", url = "https://raw.githubusercontent.com/xqrto/upd/main/fling.lua"},
         -- weitere Cosmeticals hier
     }
 
