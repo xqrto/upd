@@ -1,4 +1,4 @@
--- COMPLETE SCRIPT: ScriptHub + Settings + Avatar + Lua Executor
+ -- COMPLETE SCRIPT: ScriptHub + Settings + Avatar + Lua Executor
 -- Hinweis: versucht writefile(), fallback PlayerGui StringValue für Theme
 
 local Players = game:GetService("Players")
@@ -438,3 +438,4 @@ UserInputService.InputBegan:Connect(function(input,gameProcessed)
     if gameProcessed then return end
     if input.KeyCode==Enum.KeyCode.LeftAlt or input.KeyCode==Enum.KeyCode.RightAlt then toggleGUI() end
 end)
+
