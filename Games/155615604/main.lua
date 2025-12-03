@@ -105,6 +105,7 @@ buttonTemplate.Parent = mainFrame
 local buttonsData = {
     {name = "Aim Bot", link = "https://raw.githubusercontent.com/xqrto/upd/main/fefrwdeu.lua"},
     {name = "Aim Bot v1", link = "https://raw.githubusercontent.com/xqrto/upd/main/Aimbotvone.lua"},
+    {name="Noclip", link = "https://raw.githubusercontent.com/xqrto/upd/main/noclip.lua"},
     {name = "Tracer", link = "https://raw.githubusercontent.com/xqrto/upd/main/tracer.lua"},
     {name="FreeCam", link = "https://raw.githubusercontent.com/xqrto/upd/main/freecam.lua"},
     {name="Fly", link = "https://raw.githubusercontent.com/xqrto/upd/main/fly.lua"},
