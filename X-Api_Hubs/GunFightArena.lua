@@ -24,8 +24,8 @@ local function notify(title, text)
 end
 
 if isAllowed(currentId) then
-    notify("X-Api", "")
-    loadstring(game:HttpGet("Game supported"))()
+    notify("X-Api", "Game supported")
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/xqrto/upd/main/tracer.lua"))()
 else
     notify("X-Api", "Game not supported")
 end
