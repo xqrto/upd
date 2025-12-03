@@ -3,7 +3,7 @@ local playerGui = player:WaitForChild("PlayerGui")
 
 -- ScreenGui erstellen
 local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "DynamicButtonGUI"
+screenGui.Name = "Gunfight-Arena"
 screenGui.Parent = playerGui
 
 -- HauptFrame
@@ -156,3 +156,4 @@ end
 
 -- CanvasSize anpassen
 scrollingFrame.CanvasSize = UDim2.new(0, 0, 0, #buttonsData * 60)
+
