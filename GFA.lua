@@ -3,7 +3,7 @@ local playerGui = player:WaitForChild("PlayerGui")
 
 -- ScreenGui erstellen
 local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "Gunfight-Arena"
+screenGui.Name = "Games"
 screenGui.Parent = playerGui
 
 -- HauptFrame
@@ -31,7 +31,7 @@ local titleText = Instance.new("TextLabel")
 titleText.Size = UDim2.new(1, -80, 1, 0)
 titleText.Position = UDim2.new(0, 10, 0, 0)
 titleText.BackgroundTransparency = 1
-titleText.Text = "X-Api(Gunfight-Arena)"
+titleText.Text = "X-Api(-)"
 titleText.TextColor3 = Color3.fromRGB(255, 255, 255)
 titleText.TextScaled = true
 titleText.Font = Enum.Font.GothamBold
@@ -103,7 +103,7 @@ buttonTemplate.Parent = mainFrame
 
 -- Beispiel-Daten
 local buttonsData = {
-    {name = "Aim Bot", link = "https://raw.githubusercontent.com/xqrto/upd/main/fefrwdeu.lua"},
+    {name = "X-Hub", link = "https://raw.githubusercontent.com/xqrto/upd/refs/heads/main/main.lua"},
 }
 
 -- Tween-Funktion
