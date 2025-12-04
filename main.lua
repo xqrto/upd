@@ -205,7 +205,8 @@ local function createGUI()
         {name="Telikinesis",url="https://raw.githubusercontent.com/xqrto/upd/main/telikinesis.lua"}
     }
     local CcosmeticButtons = {
-        {name="fling",url="https://raw.githubusercontent.com/xqrto/upd/main/fling.lua"}
+        {name="fling",url="https://raw.githubusercontent.com/xqrto/upd/main/fling.lua"},
+        {name="2D",url="https://raw.githubusercontent.com/xqrto/upd/main/2d.lua"},
     }
 
     local function createButton(parent,text,callback)
