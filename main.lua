@@ -201,14 +201,14 @@ local function createGUI()
         {name="FreeCam",url="https://raw.githubusercontent.com/xqrto/upd/main/freecam.lua"},
         {name="Fly",url="https://raw.githubusercontent.com/xqrto/upd/main/fly.lua"},
         {name="Tracer",url="https://raw.githubusercontent.com/xqrto/upd/main/tracer.lua"}
+        {name="Reverse",url="https://raw.githubusercontent.com/xqrto/upd/main/reverse.lua"},
+        {name="SpeedMirage",url="https://raw.githubusercontent.com/xqrto/upd/main/speedmirage.lua"},
     }
     local ItemButtons = {
         {name="Telikinesis",url="https://raw.githubusercontent.com/xqrto/upd/main/telikinesis.lua"}
     }
     local CcosmeticButtons = {
         {name="fling",url="https://raw.githubusercontent.com/xqrto/upd/main/fling.lua"},
-        {name="Reverse",url="https://raw.githubusercontent.com/xqrto/upd/main/reverse.lua"},
-        {name="SpeedMirage",url="https://raw.githubusercontent.com/xqrto/upd/main/speedmirage.lua"},
         {name="2D",url="https://raw.githubusercontent.com/xqrto/upd/main/2d.lua"},
     }
 
