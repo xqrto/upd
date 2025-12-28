@@ -1,5 +1,6 @@
 -- COMPLETE SCRIPT: ScriptHub + Settings + Avatar + Lua Executor
 -- Hinweis: versucht writefile(), fallback PlayerGui StringValue für Theme
+--niggre
 
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
