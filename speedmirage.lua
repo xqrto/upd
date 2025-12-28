@@ -1,15 +1,12 @@
-﻿-- SUPERHERO MOVEMENT HUB v7 (CAMERA RELATIVE, RANGE+SPEED ADJUSTABLE, AFTERIMAGES)
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UIS = game:GetService("UserInputService")
 local LP = Players.LocalPlayer
 
--- SETTINGS
 local RANGE = 10
 local BASE_SPEED = 60
 local AFTERIMAGE_LIFETIME = 0.5
 
--- GUI
 local gui = Instance.new("ScreenGui", LP.PlayerGui)
 gui.ResetOnSpawn = false
 
@@ -21,7 +18,6 @@ main.BorderSizePixel = 0
 main.Active = true
 main.Draggable = true
 
--- TITLE
 local title = Instance.new("TextLabel", main)
 title.Size = UDim2.new(1, -40, 0, 35)
 title.Position = UDim2.new(0,10,0,0)
@@ -41,13 +37,11 @@ close.TextSize = 16
 close.BackgroundColor3 = Color3.fromRGB(90,20,20)
 close.TextColor3 = Color3.new(1,1,1)
 
--- CONTAINER
 local container = Instance.new("Frame", main)
 container.Position = UDim2.new(0,10,0,50)
 container.Size = UDim2.new(1,-20,1,-60)
 container.BackgroundTransparency = 1
 
--- Patterns Grid
 local patternFrame = Instance.new("Frame", container)
 patternFrame.Size = UDim2.new(1,0,0,200)
 patternFrame.Position = UDim2.new(0,0,0,0)
@@ -57,14 +51,12 @@ local patternLayout = Instance.new("UIGridLayout", patternFrame)
 patternLayout.CellSize = UDim2.new(0,120,0,40)
 patternLayout.CellPadding = UDim2.new(0,10,0,10)
 
--- Variables
 local mode = nil
 local enabled = false
 local t = 0
 local conn
 local speed = BASE_SPEED
 
--- Afterimage
 local function createAfterImage(hrp)
 	local clone = hrp:Clone()
 	for _, part in pairs(clone:GetDescendants()) do
@@ -79,13 +71,11 @@ local function createAfterImage(hrp)
 	game:GetService("Debris"):AddItem(clone, AFTERIMAGE_LIFETIME)
 end
 
--- Stop function
 local function stop()
 	enabled = false
 	if conn then conn:Disconnect() conn = nil end
 end
 
--- Patterns
 local patterns = {"SIDE","CIRCLE","SQUARE","TRIANGLE","PENTAGON","HEXAGON","STAR","INFINITY"}
 
 local function start(selectedMode)
@@ -146,7 +136,6 @@ local function start(selectedMode)
 	end)
 end
 
--- Create pattern buttons
 local function makeButton(text, modeName, parent)
 	local b = Instance.new("TextButton", parent)
 	b.Text = text
@@ -162,13 +151,11 @@ for _,p in pairs(patterns) do
 	makeButton(p,p,patternFrame)
 end
 
--- Controls Frame
 local controlFrame = Instance.new("Frame", container)
 controlFrame.Position = UDim2.new(0,0,0,210)
 controlFrame.Size = UDim2.new(1,0,0,120)
 controlFrame.BackgroundTransparency = 1
 
--- Speed controls
 local speedLabel = Instance.new("TextLabel", controlFrame)
 speedLabel.Size = UDim2.new(0.6,0,0,30)
 speedLabel.Position = UDim2.new(0,0,0,0)
@@ -206,7 +193,6 @@ plusBtn.MouseButton1Click:Connect(function()
 	speedLabel.Text = "Speed: "..math.floor(speed)
 end)
 
--- Range controls
 local rangeLabel = Instance.new("TextLabel", controlFrame)
 rangeLabel.Size = UDim2.new(0.6,0,0,30)
 rangeLabel.Position = UDim2.new(0,0,0,40)
@@ -244,7 +230,6 @@ rangePlus.MouseButton1Click:Connect(function()
 	rangeLabel.Text = "Range: "..RANGE
 end)
 
--- STOP Button
 local stopBtn = Instance.new("TextButton", container)
 stopBtn.Size = UDim2.new(1,0,0,40)
 stopBtn.Position = UDim2.new(0,0,0,350)
@@ -256,10 +241,10 @@ stopBtn.TextColor3 = Color3.new(1,1,1)
 stopBtn.BorderSizePixel = 0
 stopBtn.MouseButton1Click:Connect(stop)
 
--- Close
 close.MouseButton1Click:Connect(function()
 	stop()
 	gui:Destroy()
 end)
 
 LP.CharacterAdded:Connect(stop)
+
