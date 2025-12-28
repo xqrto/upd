@@ -1,4 +1,3 @@
-﻿-- XQRTO REVERSE GUI SCRIPT
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UIS = game:GetService("UserInputService")
@@ -11,11 +10,9 @@ local isRecording = false
 local isReversing = false
 local conn
 
--- GUI
 local gui = Instance.new("ScreenGui", LP.PlayerGui)
 gui.ResetOnSpawn = false
 
--- MAIN FRAME
 local main = Instance.new("Frame", gui)
 main.Size = UDim2.new(0,250,0,150)
 main.Position = UDim2.new(0.5,-125,0.5,-75)
@@ -23,7 +20,6 @@ main.BackgroundColor3 = Color3.fromRGB(25,25,25)
 main.BorderSizePixel = 0
 main.Active = true
 
--- TITLE BAR
 local titleBar = Instance.new("Frame", main)
 titleBar.Size = UDim2.new(1,0,0,30)
 titleBar.Position = UDim2.new(0,0,0,0)
@@ -53,7 +49,6 @@ closeBtn.MouseButton1Click:Connect(function()
 	gui:Destroy()
 end)
 
--- DRAGGING
 local dragging, dragStart, startPos
 titleBar.InputBegan:Connect(function(input)
 	if input.UserInputType == Enum.UserInputType.MouseButton1 then
@@ -81,7 +76,6 @@ UIS.InputEnded:Connect(function(input)
 	end
 end)
 
--- Buttons
 local saveBtn = Instance.new("TextButton", main)
 saveBtn.Size = UDim2.new(0,100,0,40)
 saveBtn.Position = UDim2.new(0,10,0,50)
@@ -103,7 +97,6 @@ stopBtn.Text = "STOP"
 stopBtn.BackgroundColor3 = Color3.fromRGB(180,30,30)
 stopBtn.TextColor3 = Color3.new(1,1,1)
 
--- FUNCTIONS
 local function startRecording()
 	recording = {}
 	isRecording = true
@@ -151,7 +144,7 @@ local function stop()
 	if conn then conn:Disconnect() conn = nil end
 end
 
--- BUTTON EVENTS
 saveBtn.MouseButton1Click:Connect(startRecording)
 reverseBtn.MouseButton1Click:Connect(reverseMovement)
 stopBtn.MouseButton1Click:Connect(stop)
+
