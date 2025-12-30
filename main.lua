@@ -211,6 +211,7 @@ local function createGUI()
         {name="Reverse",url="https://raw.githubusercontent.com/xqrto/upd/main/reverse.lua"},
         {name="SpeedMirage",url="https://raw.githubusercontent.com/xqrto/upd/main/speedmirage.lua"},
         {name="brookhaven-Xr",url="https://raw.githubusercontent.com/xqrto/upd/main/brook.lua"},
+        {name="brookhaven-Xr-Safety",url="https://raw.githubusercontent.com/xqrto/upd/main/xrsafe.lua"},
     }
 
     local function createButton(parent,text,callback)
