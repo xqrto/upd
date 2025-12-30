@@ -280,7 +280,7 @@ local function singleAction(mode, target)
         task.wait(0.5)
         myChar.Humanoid:UnequipTools()
     elseif mode == "Kill" then
-        myHRP.CFrame = CFrame.new(192195, 292317, -19304)
+        myHRP.CFrame = CFrame.new(192195, 5, -19304)
         task.wait(0.5)
         myChar.Humanoid:UnequipTools()
         task.wait(0.5)
