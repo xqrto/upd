@@ -3,6 +3,7 @@ local RunService = game:GetService("RunService")
 local LP = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
 
+--================ CLEANUP ================
 local function cleanup()
     local g = LP.PlayerGui:FindFirstChild("xrHUB")
     if g then g:Destroy() end
@@ -10,6 +11,7 @@ local function cleanup()
 end
 cleanup()
 
+--================ GUI ================
 local gui = Instance.new("ScreenGui", LP.PlayerGui)
 gui.Name = "xrHUB"
 gui.ResetOnSpawn = false
@@ -32,6 +34,7 @@ title.BackgroundColor3 = Color3.fromRGB(25,25,25)
 title.TextXAlignment = Enum.TextXAlignment.Left
 Instance.new("UICorner", title)
 
+--================ TABS ================
 local tabs = Instance.new("Frame", main)
 tabs.Size = UDim2.new(1,0,0,30)
 tabs.Position = UDim2.new(0,0,0,35)
@@ -51,6 +54,7 @@ end
 local tabSingle = tabBtn("SINGLE", 0)
 local tabTools = tabBtn("TOOLS", 0.5)
 
+--================ CONTENT FRAMES ================
 local contentSingle = Instance.new("Frame", main)
 contentSingle.Size = UDim2.new(1,-20,1,-80)
 contentSingle.Position = UDim2.new(0,10,0,75)
@@ -60,8 +64,10 @@ local contentTools = contentSingle:Clone()
 contentTools.Parent = main
 contentTools.Visible = false
 
+--================ STATE ================
 local selectedPlayer
 
+--================ DROPDOWN ================
 local function createDropdown(parent, onSelect)
     local search = Instance.new("TextBox", parent)
     search.Size = UDim2.new(1,0,0,30)
@@ -111,6 +117,7 @@ end
 
 createDropdown(contentSingle, function(p) selectedPlayer = p end)
 
+--================ LOGIC =================
 
 local function ensureCouch()
     local char = LP.Character
@@ -137,6 +144,7 @@ local function ensureCouch()
     end
 end
 
+-- NEUE VEHICLE TP LOGIC
 local function vehicleAction(target)
     if not target or not target.Character then return end
     local char = LP.Character
@@ -173,18 +181,22 @@ local function vehicleAction(target)
 
     if seat then
         local oldCF = hrp.CFrame
-
+        
+        -- 1. Ins Fahrzeug setzen
         char:PivotTo(seat.CFrame + Vector3.new(0, 2, 0))
         task.wait(0.1)
         seat:Sit(hum)
         task.wait(0.2)
-
+        
+        -- 2. Fahrzeug zum Spieler teleportieren
         myCar:PivotTo(tHRP.CFrame * CFrame.new(0, 5, 0))
         task.wait(0.5)
-
+        
+        -- 3. Fahrzeug verlassen (Auto verlassen statt springen)
         hum.Sit = false 
         task.wait(0.1)
-
+        
+        -- 4. Zurück zur Original-Position
         hrp.CFrame = oldCF
     else
         warn("Kein Sitz im Fahrzeug gefunden.")
@@ -194,16 +206,56 @@ end
 local function orbitUntilSit(tHRP, tHum, myHRP)
     local start = tick()
     local myChar = myHRP.Parent
-    for _, part in pairs(myChar:GetDescendants()) do if part:IsA("BasePart") then part.CanCollide = false end end
+    local myHum = myChar:FindFirstChildOfClass("Humanoid")
+    
+    -- Verhindert, dass dein Charakter durch Animationen oder Fallen schräg wird
+    if myHum then 
+        myHum.PlatformStand = true 
+    end
 
+    -- Kollision global für deinen Charakter ausschalten
+    for _, part in pairs(myChar:GetDescendants()) do 
+        if part:IsA("BasePart") then part.CanCollide = false end 
+    end
+
+    -- Die Schleife läuft maximal 10 Sekunden oder bis das Ziel sitzt
     while tick() - start < 10 do
-        if tHum.Sit then return true end
-        local angle = tick() * 80
-        local y = -3 - ((tick() - start) * 0.5)
-        myHRP.CFrame = tHRP.CFrame * CFrame.new(math.cos(angle), math.max(y, -50), math.sin(angle))
-        tHRP.Velocity = Vector3.new(math.random(-3,3), 0.1, math.random(-3,3))
+        -- Falls das Ziel im Sitz/auf der Couch ist, beenden wir erfolgreich
+        if tHum.Sit then 
+            if myHum then myHum.PlatformStand = false end
+            return true 
+        end
+        
+        -- EINSTELLUNGEN für den Catch
+        local speed = 14 -- Optimaler Speed, damit die Engine den Kontakt registriert
+        local radius = 0.6 -- Sehr nah am Ziel
+        local heightOffset = -3.4 -- Buggt dich tief genug in den Boden für stabilen Sitz
+        
+        -- PREDICTION: Berechnet die Position basierend auf der Laufrichtung des Gegners
+        -- (Verhindert, dass du "hinterherhinkst", wenn er rennt)
+        local prediction = tHRP.Velocity * 0.15 
+        local targetPos = tHRP.Position + prediction
+        
+        -- KREIS-BERECHNUNG
+        local angle = tick() * speed
+        local x = math.cos(angle) * radius
+        local z = math.sin(angle) * radius
+        
+        -- POSITIONIERUNG: 
+        -- CFrame.new(pos) ohne zusätzliche Winkel hält dich exakt senkrecht
+        local finalPos = Vector3.new(targetPos.X + x, targetPos.Y + heightOffset, targetPos.Z + z)
+        myHRP.CFrame = CFrame.new(finalPos)
+        
+        -- STABILISIERUNG:
+        -- Verhindert, dass das Ziel weggeschleudert wird, bevor es sitzt
+        tHRP.Velocity = Vector3.new(0, 0, 0)
+        tHRP.RotVelocity = Vector3.new(0, 0, 0)
+        
         RunService.Heartbeat:Wait()
     end
+    
+    -- Nach Ablauf der Zeit PlatformStand wieder ausschalten
+    if myHum then myHum.PlatformStand = false end
     return false
 end
 
@@ -238,6 +290,7 @@ local function singleAction(mode, target)
     Camera.CameraType = Enum.CameraType.Custom
 end
 
+--================ BUTTON HELPER ================
 local function mkBtn(parent,txt,y,cb)
     local b = Instance.new("TextButton", parent)
     b.Size = UDim2.new(1,0,0,35)
@@ -250,6 +303,7 @@ local function mkBtn(parent,txt,y,cb)
     return b
 end
 
+--================ BUTTONS ================
 mkBtn(contentSingle,"BRING",220,function() singleAction("Bring", selectedPlayer) end)
 mkBtn(contentSingle,"KILL",260,function() singleAction("Kill", selectedPlayer) end)
 mkBtn(contentSingle,"TP TO PLAYER",300,function() 
@@ -263,12 +317,13 @@ mkBtn(contentSingle,"TP TO PLAYER",300,function()
     end
 end)
 
+-- BUTTON FÜR VEHICLE TP
 local vehBtn = mkBtn(contentSingle,"VEHICLE TP",340,function()
     vehicleAction(selectedPlayer)
 end)
 vehBtn.BackgroundColor3 = Color3.fromRGB(30, 60, 30)
 
-
+-- DEBUG BUTTON
 local debugBtn = mkBtn(contentSingle,"GET COUCH (DEBUG)",385,function()
     ensureCouch()
 end)
@@ -294,6 +349,7 @@ mkBtn(contentTools,"Give Kill Tool",100,function()
     end)
 end)
 
+--================ TAB SWITCH =================
 tabSingle.MouseButton1Click:Connect(function() contentSingle.Visible = true; contentTools.Visible = false end)
 tabTools.MouseButton1Click:Connect(function() contentSingle.Visible = false; contentTools.Visible = true end)
 
