@@ -204,7 +204,8 @@ local function createGUI()
         {name="Name-ESP",url="https://raw.githubusercontent.com/xqrto/upd/main/nameESP.lua"},
     }
     local ItemButtons = {
-        {name="Telikinesis",url="https://raw.githubusercontent.com/xqrto/upd/main/telikinesis.lua"}
+        {name="Telikinesis",url="https://raw.githubusercontent.com/xqrto/upd/main/telikinesis.lua"},
+        {name="Tp",url="https://raw.githubusercontent.com/xqrto/upd/main/tp.lua"}
     }
     local CcosmeticButtons = {
         {name="fling",url="https://raw.githubusercontent.com/xqrto/upd/main/fling.lua"},
