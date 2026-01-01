@@ -1,5 +1,6 @@
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
 local LP = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
 
@@ -17,24 +18,61 @@ gui.Name = "xrHUB"
 gui.ResetOnSpawn = false
 
 local main = Instance.new("Frame", gui)
-main.Size = UDim2.new(0,440,0,500)
-main.Position = UDim2.new(0.5,-220,0.4,-250)
-main.BackgroundColor3 = Color3.fromRGB(35,35,35)
+local mainWidth, mainHeight = 440, 500
+local titleHeight = 35
+
+-- Positionierung: Jetzt ca. 1cm (50 Pixel) vom rechten Rand entfernt
+local rightOffset = -mainWidth - 250
+local posHidden = UDim2.new(1, rightOffset, 1, -titleHeight - 10)
+local posVisible = UDim2.new(1, rightOffset, 1, -mainHeight - 10)
+
+main.Size = UDim2.new(0, mainWidth, 0, mainHeight)
+main.Position = posHidden
+main.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
 main.Active = true
-main.Draggable = true
+main.Draggable = false 
+main.ClipsDescendants = true
 Instance.new("UICorner", main)
 
 local title = Instance.new("TextLabel", main)
-title.Size = UDim2.new(1,0,0,35)
-title.Text = "   xr HUB V28 - LITE"
+title.Size = UDim2.new(1, 0, 0, titleHeight)
+title.Text = "    xr HUB V28 - LITE"
 title.Font = Enum.Font.Code
 title.TextSize = 18
-title.TextColor3 = Color3.new(1,1,1)
-title.BackgroundColor3 = Color3.fromRGB(25,25,25)
+title.TextColor3 = Color3.new(1, 1, 1)
+title.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
 title.TextXAlignment = Enum.TextXAlignment.Left
 Instance.new("UICorner", title)
 
---================ TABS ================
+--================ ANIMATION LOGIC ================
+local isOut = false
+local lastLeaveTime = 0
+local leaveDelay = 3 
+
+local function tweenGui(targetPos)
+    TweenService:Create(main, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Position = targetPos}):Play()
+end
+
+main.MouseEnter:Connect(function()
+    isOut = true
+    lastLeaveTime = tick()
+    tweenGui(posVisible)
+end)
+
+main.MouseLeave:Connect(function()
+    isOut = false
+    lastLeaveTime = tick()
+end)
+
+RunService.Heartbeat:Connect(function()
+    if not isOut and (tick() - lastLeaveTime) >= leaveDelay then
+        if main.Position ~= posHidden then
+            tweenGui(posHidden)
+        end
+    end
+end)
+
+--================ TABS & CONTENT (Rest des Scripts) ================
 local tabs = Instance.new("Frame", main)
 tabs.Size = UDim2.new(1,0,0,30)
 tabs.Position = UDim2.new(0,0,0,35)
@@ -54,7 +92,6 @@ end
 local tabSingle = tabBtn("SINGLE", 0)
 local tabTools = tabBtn("TOOLS", 0.5)
 
---================ CONTENT FRAMES ================
 local contentSingle = Instance.new("Frame", main)
 contentSingle.Size = UDim2.new(1,-20,1,-80)
 contentSingle.Position = UDim2.new(0,10,0,75)
@@ -64,7 +101,6 @@ local contentTools = contentSingle:Clone()
 contentTools.Parent = main
 contentTools.Visible = false
 
---================ STATE ================
 local selectedPlayer
 
 --================ DROPDOWN ================
@@ -118,33 +154,26 @@ end
 createDropdown(contentSingle, function(p) selectedPlayer = p end)
 
 --================ LOGIC =================
-
 local function ensureCouch()
     local char = LP.Character
     local hum = char and char:FindFirstChild("Humanoid")
     local hrp = char and char:FindFirstChild("HumanoidRootPart")
     if not hum or not hrp then return end
-    
     local couch = char:FindFirstChild("Couch") or LP.Backpack:FindFirstChild("Couch")
-    if couch then 
-        hum:EquipTool(couch) 
-    else
+    if couch then hum:EquipTool(couch) else
         local oldCamCF = Camera.CFrame
         Camera.CameraType = Enum.CameraType.Scriptable
         Camera.CFrame = oldCamCF
-
         local oldCF = hrp.CFrame
         hrp.CFrame = CFrame.new(-82.6, 27, -129.9)
         task.wait(1)
         hum:ChangeState(Enum.HumanoidStateType.Jumping)
         task.wait(0.2)
         hrp.CFrame = oldCF
-        
         Camera.CameraType = Enum.CameraType.Custom
     end
 end
 
--- NEUE VEHICLE TP LOGIC
 local function vehicleAction(target)
     if not target or not target.Character then return end
     local char = LP.Character
@@ -152,54 +181,29 @@ local function vehicleAction(target)
     local hrp = char:FindFirstChild("HumanoidRootPart")
     local tHRP = target.Character:FindFirstChild("HumanoidRootPart")
     if not hum or not hrp or not tHRP then return end
-
     local VEHICLES_FOLDER = workspace:FindFirstChild("Vehicles")
     if not VEHICLES_FOLDER then return end
-    
     local targetCarName = (LP.Name .. "CAR"):upper()
     local myCar = nil
-
     for _, v in pairs(VEHICLES_FOLDER:GetChildren()) do
-        if v:IsA("Model") and v.Name:upper() == targetCarName then
-            myCar = v
-            break
-        end
+        if v:IsA("Model") and v.Name:upper() == targetCarName then myCar = v break end
     end
-
-    if not myCar then 
-        warn("Fahrzeug nicht gefunden: " .. targetCarName)
-        return 
-    end
-
+    if not myCar then return end
     local seat = nil
     for _, obj in pairs(myCar:GetDescendants()) do
-        if obj:IsA("VehicleSeat") or obj:IsA("Seat") then
-            seat = obj
-            break
-        end
+        if obj:IsA("VehicleSeat") or obj:IsA("Seat") then seat = obj break end
     end
-
     if seat then
         local oldCF = hrp.CFrame
-        
-        -- 1. Ins Fahrzeug setzen
         char:PivotTo(seat.CFrame + Vector3.new(0, 2, 0))
         task.wait(0.1)
         seat:Sit(hum)
         task.wait(0.2)
-        
-        -- 2. Fahrzeug zum Spieler teleportieren
         myCar:PivotTo(tHRP.CFrame * CFrame.new(0, 5, 0))
         task.wait(0.5)
-        
-        -- 3. Fahrzeug verlassen (Auto verlassen statt springen)
         hum.Sit = false 
         task.wait(0.1)
-        
-        -- 4. Zurück zur Original-Position
         hrp.CFrame = oldCF
-    else
-        warn("Kein Sitz im Fahrzeug gefunden.")
     end
 end
 
@@ -207,54 +211,28 @@ local function orbitUntilSit(tHRP, tHum, myHRP)
     local start = tick()
     local myChar = myHRP.Parent
     local myHum = myChar:FindFirstChildOfClass("Humanoid")
-    
-    -- Verhindert, dass dein Charakter durch Animationen oder Fallen schräg wird
-    if myHum then 
-        myHum.PlatformStand = true 
-    end
-
-    -- Kollision global für deinen Charakter ausschalten
+    if myHum then myHum.PlatformStand = true end
     for _, part in pairs(myChar:GetDescendants()) do 
         if part:IsA("BasePart") then part.CanCollide = false end 
     end
-
-    -- Die Schleife läuft maximal 10 Sekunden oder bis das Ziel sitzt
     while tick() - start < 10 do
-        -- Falls das Ziel im Sitz/auf der Couch ist, beenden wir erfolgreich
         if tHum.Sit then 
             if myHum then myHum.PlatformStand = false end
             return true 
         end
-        
-        -- EINSTELLUNGEN für den Catch
-        local speed = 14 -- Optimaler Speed, damit die Engine den Kontakt registriert
-        local radius = 0.6 -- Sehr nah am Ziel
-        local heightOffset = -3.4 -- Buggt dich tief genug in den Boden für stabilen Sitz
-        
-        -- PREDICTION: Berechnet die Position basierend auf der Laufrichtung des Gegners
-        -- (Verhindert, dass du "hinterherhinkst", wenn er rennt)
+        local speed = 14
+        local radius = 0.6
+        local heightOffset = -3.4
         local prediction = tHRP.Velocity * 0.15 
         local targetPos = tHRP.Position + prediction
-        
-        -- KREIS-BERECHNUNG
         local angle = tick() * speed
         local x = math.cos(angle) * radius
         local z = math.sin(angle) * radius
-        
-        -- POSITIONIERUNG: 
-        -- CFrame.new(pos) ohne zusätzliche Winkel hält dich exakt senkrecht
-        local finalPos = Vector3.new(targetPos.X + x, targetPos.Y + heightOffset, targetPos.Z + z)
-        myHRP.CFrame = CFrame.new(finalPos)
-        
-        -- STABILISIERUNG:
-        -- Verhindert, dass das Ziel weggeschleudert wird, bevor es sitzt
+        myHRP.CFrame = CFrame.new(Vector3.new(targetPos.X + x, targetPos.Y + heightOffset, targetPos.Z + z))
         tHRP.Velocity = Vector3.new(0, 0, 0)
         tHRP.RotVelocity = Vector3.new(0, 0, 0)
-        
         RunService.Heartbeat:Wait()
     end
-    
-    -- Nach Ablauf der Zeit PlatformStand wieder ausschalten
     if myHum then myHum.PlatformStand = false end
     return false
 end
@@ -266,15 +244,12 @@ local function singleAction(mode, target)
     local tHRP = target.Character:FindFirstChild("HumanoidRootPart")
     local tHum = target.Character:FindFirstChild("Humanoid")
     if not myHRP or not tHRP or not tHum then return end
-
     local oldCamCF = Camera.CFrame
     Camera.CameraType = Enum.CameraType.Scriptable
     Camera.CFrame = oldCamCF
-
     ensureCouch()
     local startCF = myHRP.CFrame
     orbitUntilSit(tHRP, tHum, myHRP)
-
     if mode == "Bring" then
         myHRP.CFrame = startCF
         task.wait(0.5)
@@ -286,7 +261,6 @@ local function singleAction(mode, target)
         task.wait(0.5)
         myHRP.CFrame = startCF
     end
-
     Camera.CameraType = Enum.CameraType.Custom
 end
 
@@ -317,19 +291,12 @@ mkBtn(contentSingle,"TP TO PLAYER",300,function()
     end
 end)
 
--- BUTTON FÜR VEHICLE TP
-local vehBtn = mkBtn(contentSingle,"VEHICLE TP",340,function()
-    vehicleAction(selectedPlayer)
-end)
+local vehBtn = mkBtn(contentSingle,"VEHICLE TP",340,function() vehicleAction(selectedPlayer) end)
 vehBtn.BackgroundColor3 = Color3.fromRGB(30, 60, 30)
 
--- DEBUG BUTTON
-local debugBtn = mkBtn(contentSingle,"GET COUCH (DEBUG)",385,function()
-    ensureCouch()
-end)
+local debugBtn = mkBtn(contentSingle,"GET COUCH (DEBUG)",385,function() ensureCouch() end)
 debugBtn.BackgroundColor3 = Color3.fromRGB(60, 30, 30)
 
--- TOOLS TAB
 mkBtn(contentTools,"Give Bring Tool",50,function() 
     local t = Instance.new("Tool", LP.Backpack)
     t.Name = "Bring Tool"
@@ -349,7 +316,6 @@ mkBtn(contentTools,"Give Kill Tool",100,function()
     end)
 end)
 
---================ TAB SWITCH =================
 tabSingle.MouseButton1Click:Connect(function() contentSingle.Visible = true; contentTools.Visible = false end)
 tabTools.MouseButton1Click:Connect(function() contentSingle.Visible = false; contentTools.Visible = true end)
 
