@@ -101,7 +101,7 @@ toggleBtn.Text = "Fling: OFF"
 toggleBtn.BackgroundColor3 = Color3.fromRGB(150,0,0)
 toggleBtn.TextColor3 = Color3.new(1,1,1)
 
--- Info (Hilfstext, bleibt unverändert)
+-- Info
 local info = Instance.new("TextLabel", frame)
 info.Size = UDim2.fromOffset(230,50)
 info.Position = UDim2.fromOffset(10,175)
@@ -110,6 +110,22 @@ info.TextScaled = true
 info.Text = "Equip Soccer, start fling throw"
 info.TextColor3 = Color3.new(1,1,1)
 info.BackgroundTransparency = 1
+
+--------------------------------------------------
+-- LASER (TRACER) SETUP
+--------------------------------------------------
+local beam = Instance.new("Beam")
+local att0 = Instance.new("Attachment", workspace.Terrain)
+local att1 = Instance.new("Attachment", workspace.Terrain)
+beam.Color = ColorSequence.new(Color3.new(1, 0, 0))
+beam.Width0 = 0.2
+beam.Width1 = 0.2
+beam.FaceCamera = true
+beam.Enabled = false
+beam.Attachment0 = att0
+beam.Attachment1 = att1
+beam.CurveSize0 = 2 
+beam.Parent = workspace.Terrain
 
 --------------------------------------------------
 -- DROPDOWN LOGIC
@@ -155,7 +171,7 @@ searchBox:GetPropertyChangedSignal("Text"):Connect(refreshDrop)
 --------------------------------------------------
 toolBtn.MouseButton1Click:Connect(function()
     if lp.Backpack:FindFirstChild("PlayerSelectorTool") then
-        return -- Tool bereits vorhanden
+        return 
     end
 
     local tool = Instance.new("Tool")
@@ -165,7 +181,6 @@ toolBtn.MouseButton1Click:Connect(function()
     tool.Parent = lp.Backpack
 
     tool.Equipped:Connect(function(mouse)
-        -- Permanent Connection
         local conn
         conn = mouse.Button1Down:Connect(function()
             local targetPart = mouse.Target
@@ -196,6 +211,26 @@ local function getBall()
 end
 
 RunService.Heartbeat:Connect(function()
+    -- LASER LOGIC (Jetzt abhängig von ENABLED)
+    local char = lp.Character
+    local tool = char and char:FindFirstChildOfClass("Tool")
+    
+    -- Prüfen: Tool ist Soccer UND Player gewählt UND Fling ist an
+    if ENABLED and tool and tool.Name:lower():find("soccer") and selectedPlayer and selectedPlayer.Character then
+        local myHRP = char:FindFirstChild("HumanoidRootPart")
+        local targetHRP = selectedPlayer.Character:FindFirstChild("HumanoidRootPart")
+        if myHRP and targetHRP then
+            att0.WorldPosition = myHRP.Position
+            att1.WorldPosition = targetHRP.Position
+            beam.Enabled = true
+        else 
+            beam.Enabled = false 
+        end
+    else 
+        beam.Enabled = false 
+    end
+
+    -- ORIGINAL LOGIC START
     if not ENABLED then return end
     if not selectedPlayer or not selectedPlayer.Character then return end
     if not lp.Character then return end
