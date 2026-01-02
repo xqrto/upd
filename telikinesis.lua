@@ -29,7 +29,7 @@ local manualMode = false
 -- PHYSIK KONSTANTEN
 local FFE_POWER = 99999999
 local MAGNET_FORCE = 8000
-local MAX_RECALL_SPEED = 15000 -- Extrem schnell für weite Distanzen
+local MAX_RECALL_SPEED = 20000 
 
 --------------------------------------------------
 -- TOOLS SYSTEM
@@ -69,11 +69,9 @@ local function giveTools()
                 local target = (m and m:FindFirstChildOfClass("Humanoid")) and m or mouse.Target
                 shotItems[item] = {target = target, returning = false, startTime = tick()}
                 
-                -- Automatischer Rückzug nach 6 Sekunden oder Treffer
                 task.delay(6, function() 
                     if shotItems[item] then 
                         shotItems[item].returning = true 
-                        -- Sicherheits-Teleport nach insgesamt 10 Sekunden
                         task.wait(4)
                         if shotItems[item] then
                             item.CFrame = lp.Character:GetPivot()
@@ -107,7 +105,7 @@ UserInputService.InputBegan:Connect(function(input, gpe)
 end)
 
 --------------------------------------------------
--- GUI (Titel wieder da, Distance ab 0)
+-- GUI
 --------------------------------------------------
 local gui = Instance.new("ScreenGui", lp.PlayerGui); gui.Name = "Tkns_xqrto_Aura"; gui.ResetOnSpawn = false
 local main = Instance.new("Frame", gui); main.Size = UDim2.fromOffset(280, 450); main.Position = UDim2.new(0.02, 0, 0.3, 0); main.BackgroundColor3 = Color3.fromRGB(15, 15, 15); main.Active = true; main.Draggable = true
@@ -150,7 +148,7 @@ createSlider("Glow Power", "glowStrength", 1, 50, 350)
 createSlider("Transparency", "transparency", 0, 1, 400)
 
 --------------------------------------------------
--- MAIN LOOP (HYPER RECALL & FE LOGIC)
+-- MAIN LOOP (LOCKED PHYSICS)
 --------------------------------------------------
 local angle, waveTimer = 0, 0
 _G.FlingConnection = RunService.Heartbeat:Connect(function(dt)
@@ -188,39 +186,32 @@ _G.FlingConnection = RunService.Heartbeat:Connect(function(dt)
         local s = shotItems[part]
 
         if s then
+            -- PHYSIC LOCK SCHUSS
             local distToPlayer = (hrp.Position - part.Position).Magnitude
             if s.returning then
-                -- HYPER RECALL PHYSICS
-                local direction = (hrp.Position - part.Position).Unit
-                local speed = math.clamp(distToPlayer * 25, 500, MAX_RECALL_SPEED)
-                part.AssemblyLinearVelocity = direction * speed
-                
-                -- Ankunft in Aura
+                local tPos = hrp.Position
+                part.CFrame = CFrame.new(part.Position:Lerp(tPos, 0.2)) -- Glatter Rückzug
+                part.AssemblyLinearVelocity = (tPos - part.Position).Unit * MAX_RECALL_SPEED
                 if distToPlayer < 8 then shotItems[part] = nil end
             else
-                -- MAGNET SCHUSS
                 local tP = (s.target:IsA("Model") and s.target:GetPivot().Position or s.target.Position)
-                local distToTarget = (tP - part.Position).Magnitude
+                part.CFrame = CFrame.new(part.Position:Lerp(tP, 0.1)) -- Gleitet zum Ziel
                 part.AssemblyLinearVelocity = (tP - part.Position).Unit * MAGNET_FORCE
-                
-                -- Fling bei Treffer
-                if distToTarget < 5 then 
-                    part.AssemblyLinearVelocity = Vector3.new(0, 1000, 0) * FFE_POWER 
-                    s.returning = true -- Sofort zurück nach Treffer
+                if (tP - part.Position).Magnitude < 5 then 
+                    part.AssemblyLinearVelocity = Vector3.new(0, 5000, 0) * FFE_POWER 
+                    s.returning = true 
                 end
             end
         elseif controlActive and manualMode then
-            local mPos = mouse.Hit.Position
-            part.CFrame = CFrame.new(mPos) 
-            part.AssemblyLinearVelocity = hrp.Velocity * FFE_POWER 
+            part.CFrame = CFrame.new(mouse.Hit.Position) 
+            part.AssemblyLinearVelocity = Vector3.new(0, 5000, 0) * FFE_POWER 
         else
-            -- NORMAL AURA
+            -- LOCKED AURA ORBIT
             local tPos = hrp.Position + Vector3.new(math.cos(angle) * settings.distance, settings.height + math.sin(waveTimer * 0.5) * 2, math.sin(angle) * settings.distance)
-            if (part.Position - hrp.Position).Magnitude > 80 then
-                part.AssemblyLinearVelocity = (hrp.Position - part.Position).Unit * 500
-            else
-                part.AssemblyLinearVelocity = (tPos - part.Position) * 35
-            end
+            
+            -- Lock an Position aber behalte Fling-Kraft
+            part.CFrame = CFrame.new(tPos)
+            part.AssemblyLinearVelocity = Vector3.new(0, 5000, 0) * FFE_POWER
         end
     end
 end)
