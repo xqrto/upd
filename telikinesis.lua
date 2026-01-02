@@ -6,217 +6,223 @@ local mouse = lp:GetMouse()
 
 -- CLEANUP
 if _G.FlingConnection then _G.FlingConnection:Disconnect() end
-local oldGui = lp.PlayerGui:FindFirstChild("Aura_Master_v2")
+local oldGui = lp.PlayerGui:FindFirstChild("Tkns_xqrto_Aura")
 if oldGui then oldGui:Destroy() end
 
--- SETTINGS
+-- INITIAL SETTINGS
 local settings = {
-    color = Color3.fromRGB(255, 0, 0),
+    color = Color3.fromRGB(0, 170, 255),
     distance = 7,
     height = 1,
     transparency = 0.5,
     glowStrength = 10,
     orbitSpeed = 15,
     waveSpeed = 10,
-    maxSearchDist = 300
+    maxSearchDist = 400,
+    Red = 0, Green = 170, Blue = 255
 }
 
 local auraParts = {}
-local attacking = false
-local targetObject = nil
+local shotItems = {} 
+local manualMode = false 
 
--- CONSTANTS
-local MAGNET_FORCE = 5000   
+-- PHYSIK KONSTANTEN
 local FFE_POWER = 99999999
-local WAVE_WIDTH = 4     
-local FOLLOW_DIST = 6    
+local MAGNET_FORCE = 8000
+local MAX_RECALL_SPEED = 15000 -- Extrem schnell für weite Distanzen
 
 --------------------------------------------------
--- TOOL AUTO-GIVER (Gibt Tools sofort zurück)
+-- TOOLS SYSTEM
 --------------------------------------------------
 local function giveTools()
-    local tool1Name = "1. [Add Part]"
-    local tool2Name = "2. [Aura Punch]"
-    
-    local t1 = lp.Backpack:FindFirstChild(tool1Name) or (lp.Character and lp.Character:FindFirstChild(tool1Name))
-    local t2 = lp.Backpack:FindFirstChild(tool2Name) or (lp.Character and lp.Character:FindFirstChild(tool2Name))
-    
-    if not t1 then
-        local addTool = Instance.new("Tool")
-        addTool.Name = tool1Name
-        addTool.RequiresHandle = false
-        addTool.Parent = lp.Backpack
-        
-        addTool.Activated:Connect(function()
-            local t = mouse.Target
-            if t and not t.Anchored and not table.find(auraParts, t) then
-                pcall(function() t.AssemblyLinearVelocity = Vector3.new(0,1,0) end)
-                table.insert(auraParts, t)
+    local configs = {
+        {name = "add", func = function()
+            local target = mouse.Target
+            local newPart = nil
+            if target and target:IsA("BasePart") and not target.Anchored and not target:IsDescendantOf(lp.Character) then
+                newPart = target
+            else
+                local pos = mouse.Hit.Position
+                for _, p in ipairs(workspace:GetPartBoundsInRadius(pos, 5)) do
+                    if p:IsA("BasePart") and not p.Anchored and not p:IsDescendantOf(lp.Character) then
+                        newPart = p; break
+                    end
+                end
             end
-        end)
-    end
-    
-    if not t2 then
-        local punchTool = Instance.new("Tool")
-        punchTool.Name = tool2Name
-        punchTool.RequiresHandle = false
-        punchTool.Parent = lp.Backpack
-        
-        punchTool.Activated:Connect(function()
-            if #auraParts == 0 or attacking then return end
-            if mouse.Target then
+            
+            if newPart then
+                for _, p in ipairs(auraParts) do 
+                    p.CanCollide = true 
+                    p.Transparency = 0
+                end
+                auraParts = {newPart}
+                shotItems = {} 
+                manualMode = false 
+            end
+        end},
+        {name = "shoot", func = function()
+            if #auraParts == 0 then return end
+            local item = auraParts[1]
+            if item and mouse.Target then
+                manualMode = false
                 local m = mouse.Target:FindFirstAncestorOfClass("Model")
-                targetObject = (m and m:FindFirstChildOfClass("Humanoid")) and m or mouse.Target
-                attacking = true
-                task.wait(4)
-                attacking = false
-                targetObject = nil
+                local target = (m and m:FindFirstChildOfClass("Humanoid")) and m or mouse.Target
+                shotItems[item] = {target = target, returning = false, startTime = tick()}
+                
+                -- Automatischer Rückzug nach 6 Sekunden oder Treffer
+                task.delay(6, function() 
+                    if shotItems[item] then 
+                        shotItems[item].returning = true 
+                        -- Sicherheits-Teleport nach insgesamt 10 Sekunden
+                        task.wait(4)
+                        if shotItems[item] then
+                            item.CFrame = lp.Character:GetPivot()
+                            shotItems[item] = nil
+                        end
+                    end 
+                end)
             end
-        end)
+        end},
+        {name = "Precision Control", func = nil}
+    }
+    
+    local backpack = lp:FindFirstChild("Backpack")
+    if backpack then
+        for _, c in ipairs(configs) do
+            if not backpack:FindFirstChild(c.name) and not (lp.Character and lp.Character:FindFirstChild(c.name)) then
+                local t = Instance.new("Tool"); t.Name = c.name; t.RequiresHandle = false; t.Parent = backpack
+                if c.func then t.Activated:Connect(c.func) end
+            end
+        end
     end
 end
 
--- Prüfe alle 1 Sekunde, ob die Tools noch da sind
-task.spawn(function()
-    while task.wait(1) do
-        giveTools()
+-- Input Steuerung
+UserInputService.InputBegan:Connect(function(input, gpe)
+    if gpe then return end
+    if not lp.Character or not lp.Character:FindFirstChild("Precision Control") then return end
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        manualMode = not manualMode 
     end
 end)
 
 --------------------------------------------------
--- MODERN GUI
+-- GUI (Titel wieder da, Distance ab 0)
 --------------------------------------------------
-local gui = Instance.new("ScreenGui", lp.PlayerGui)
-gui.Name = "Aura_Master_v2"
-gui.ResetOnSpawn = false
+local gui = Instance.new("ScreenGui", lp.PlayerGui); gui.Name = "Tkns_xqrto_Aura"; gui.ResetOnSpawn = false
+local main = Instance.new("Frame", gui); main.Size = UDim2.fromOffset(280, 450); main.Position = UDim2.new(0.02, 0, 0.3, 0); main.BackgroundColor3 = Color3.fromRGB(15, 15, 15); main.Active = true; main.Draggable = true
+Instance.new("UICorner", main)
 
-local mainFrame = Instance.new("Frame", gui)
-mainFrame.Size = UDim2.fromOffset(260, 450)
-mainFrame.Position = UDim2.new(0.02, 0, 0.25, 0)
-mainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
-mainFrame.BorderSizePixel = 0
-mainFrame.Active = true
-mainFrame.Draggable = true
+local titleFrame = Instance.new("Frame", main); titleFrame.Size = UDim2.new(1, 0, 0, 35); titleFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25); titleFrame.BorderSizePixel = 0
+local titleLabel = Instance.new("TextLabel", titleFrame); titleLabel.Size = UDim2.new(1, 0, 1, 0); titleLabel.Text = "Tkns (xqrto) Settings"; titleLabel.TextColor3 = Color3.new(1,1,1); titleLabel.Font = "GothamBold"; titleLabel.TextSize = 14; titleLabel.BackgroundTransparency = 1
+Instance.new("UICorner", titleFrame)
 
-local uiCorner = Instance.new("UICorner", mainFrame)
-uiCorner.CornerRadius = UDim.new(0, 10)
+local scroll = Instance.new("ScrollingFrame", main); scroll.Size = UDim2.new(1, -20, 1, -55); scroll.Position = UDim2.fromOffset(10, 45); scroll.BackgroundTransparency = 1; scroll.CanvasSize = UDim2.new(0, 0, 0, 500); scroll.ScrollBarThickness = 3
 
-local title = Instance.new("TextLabel", mainFrame)
-title.Size = UDim2.new(1, 0, 0, 40)
-title.Text = "AURA SETTINGS"
-title.TextColor3 = Color3.fromRGB(0, 170, 255)
-title.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-title.Font = Enum.Font.GothamBold
-title.TextSize = 16
-Instance.new("UICorner", title).CornerRadius = UDim.new(0, 10)
-
-local container = Instance.new("ScrollingFrame", mainFrame)
-container.Size = UDim2.new(1, -20, 1, -50)
-container.Position = UDim2.new(0, 10, 0, 45)
-container.BackgroundTransparency = 1
-container.CanvasSize = UDim2.new(0, 0, 0, 600)
-container.ScrollBarThickness = 2
-
-local function createSlider(name, yPos, default, min, max, callback)
-    local label = Instance.new("TextLabel", container)
-    label.Size = UDim2.new(1, 0, 0, 20); label.Position = UDim2.new(0, 0, 0, yPos)
-    label.Text = name .. ": " .. default; label.TextColor3 = Color3.new(1,1,1); label.BackgroundTransparency = 1; label.Font = Enum.Font.Gotham; label.TextXAlignment = Enum.TextXAlignment.Left; label.TextSize = 12
-
-    local bg = Instance.new("Frame", container)
-    bg.Size = UDim2.new(1, 0, 0, 6); bg.Position = UDim2.new(0, 0, 0, yPos + 22); bg.BackgroundColor3 = Color3.fromRGB(40,40,40)
-    Instance.new("UICorner", bg)
-
-    local fill = Instance.new("Frame", bg)
-    fill.Size = UDim2.new((default-min)/(max-min), 0, 1, 0); fill.BackgroundColor3 = Color3.fromRGB(0, 170, 255); fill.BorderSizePixel = 0
-    Instance.new("UICorner", fill)
-
-    local btn = Instance.new("TextButton", bg)
-    btn.Size = UDim2.new(1,0,1,0); btn.BackgroundTransparency = 1; btn.Text = ""
-
-    local dragging = false
-    local function update()
-        local percent = math.clamp((UserInputService:GetMouseLocation().X - bg.AbsolutePosition.X) / bg.AbsoluteSize.X, 0, 1)
-        local val = math.floor((min + (max - min) * percent) * 10) / 10
-        fill.Size = UDim2.new(percent, 0, 1, 0)
-        label.Text = name .. ": " .. val
-        callback(val)
-    end
-    btn.MouseButton1Down:Connect(function() dragging = true end)
-    UserInputService.InputEnded:Connect(function(input) if input.UserInputType == Enum.UserInputType.MouseButton1 then dragging = false end end)
-    RunService.RenderStepped:Connect(function() if dragging then update() end end)
+local function createSlider(name, prop, min, max, yPos)
+    local frame = Instance.new("Frame", scroll); frame.Size = UDim2.new(1, 0, 0, 45); frame.Position = UDim2.fromOffset(0, yPos); frame.BackgroundTransparency = 1
+    local label = Instance.new("TextLabel", frame); label.Size = UDim2.new(1, 0, 0, 20); label.Text = name .. ": " .. tostring(settings[prop]); label.TextColor3 = Color3.new(1,1,1); label.BackgroundTransparency = 1; label.Font = "Gotham"; label.TextSize = 12; label.TextXAlignment = "Left"
+    local bar = Instance.new("Frame", frame); bar.Size = UDim2.new(1, -10, 0, 6); bar.Position = UDim2.fromOffset(0, 25); bar.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+    local fill = Instance.new("Frame", bar); fill.Size = UDim2.new((settings[prop] - min) / (max - min), 0, 1, 0); fill.BackgroundColor3 = settings.color; fill.BorderSizePixel = 0
+    local btn = Instance.new("TextButton", bar); btn.Size = UDim2.new(1, 0, 1, 0); btn.BackgroundTransparency = 1; btn.Text = ""
+    
+    btn.MouseButton1Down:Connect(function()
+        local conn; conn = RunService.RenderStepped:Connect(function()
+            if not UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) then conn:Disconnect() return end
+            local relPos = math.clamp((UserInputService:GetMouseLocation().X - bar.AbsolutePosition.X) / bar.AbsoluteSize.X, 0, 1)
+            local val = math.floor((min + (max - min) * relPos) * 10) / 10
+            settings[prop] = val
+            label.Text = name .. ": " .. tostring(val)
+            fill.Size = UDim2.new(relPos, 0, 1, 0)
+            settings.color = Color3.fromRGB(settings.Red, settings.Green, settings.Blue)
+        end)
+    end)
 end
 
--- Sliders Setup
-local r, g, b = 1, 0, 0
-createSlider("Color: Red", 0, 255, 0, 255, function(v) r = v/255 settings.color = Color3.new(r,g,b) end)
-createSlider("Color: Green", 45, 0, 0, 255, function(v) g = v/255 settings.color = Color3.new(r,g,b) end)
-createSlider("Color: Blue", 90, 0, 0, 255, function(v) b = v/255 settings.color = Color3.new(r,g,b) end)
-createSlider("Orbit Distance", 150, 7, 2, 30, function(v) settings.distance = v end)
-createSlider("Height (Y-Axis)", 195, 1, -10, 20, function(v) settings.height = v end)
-createSlider("Orbit Speed", 240, 15, 0, 50, function(v) settings.orbitSpeed = v end)
-createSlider("Wave Speed", 285, 10, 0, 50, function(v) settings.waveSpeed = v end)
-createSlider("Transparency", 330, 0.5, 0, 1, function(v) settings.transparency = v end)
-createSlider("Glow Power", 375, 10, 1, 40, function(v) settings.glowStrength = v end)
+createSlider("Red", "Red", 0, 255, 0)
+createSlider("Green", "Green", 0, 255, 50)
+createSlider("Blue", "Blue", 0, 255, 100)
+createSlider("Orbit Speed", "orbitSpeed", 0, 100, 150)
+createSlider("Wave Speed", "waveSpeed", 0, 100, 200)
+createSlider("Distance", "distance", 0, 50, 250)
+createSlider("Height", "height", -10, 30, 300)
+createSlider("Glow Power", "glowStrength", 1, 50, 350)
+createSlider("Transparency", "transparency", 0, 1, 400)
 
 --------------------------------------------------
--- MAIN LOOP
+-- MAIN LOOP (HYPER RECALL & FE LOGIC)
 --------------------------------------------------
 local angle, waveTimer = 0, 0
-
 _G.FlingConnection = RunService.Heartbeat:Connect(function(dt)
-    local char = lp.Character
-    local hrp = char and char:FindFirstChild("HumanoidRootPart")
-    local hum = char and char:FindFirstChild("Humanoid")
-    if not hrp or not hum then return end
+    local char = lp.Character; if not char then return end
+    local hrp = char:FindFirstChild("HumanoidRootPart")
+    if not hrp then return end
 
-    -- ESP Visuals (Nur wenn Add-Tool gehalten wird)
-    local tool1 = lp.Backpack:FindFirstChild("1. [Add Part]") or (lp.Character and lp.Character:FindFirstChild("1. [Add Part]"))
-    if tool1 and tool1.Parent == char then
-        for _, p in ipairs(workspace:GetPartBoundsInRadius(hrp.Position, settings.maxSearchDist)) do
-            if not p.Anchored and not p:IsDescendantOf(char) and not p:FindFirstChild("AuraESP") then
-                local h = Instance.new("Highlight", p); h.Name = "AuraESP"; h.FillTransparency = 0.5; h.FillColor = Color3.new(1,1,1)
-                task.delay(0.2, function() if h then h:Destroy() end end)
+    giveTools()
+    angle = angle + dt * settings.orbitSpeed; waveTimer = waveTimer + dt * settings.waveSpeed
+    
+    -- ADD ESP
+    if char:FindFirstChild("add") then
+        local partsInRegion = workspace:GetPartBoundsInRadius(hrp.Position, settings.maxSearchDist)
+        for _, p in ipairs(partsInRegion) do
+            if p:IsA("BasePart") and not p.Anchored and not p:IsDescendantOf(char) and not table.find(auraParts, p) then
+                if not p:FindFirstChild("AuraESP") then
+                    local h = Instance.new("Highlight", p); h.Name = "AuraESP"; h.FillTransparency = 0.5; h.OutlineColor = Color3.new(1,1,1); h.FillColor = settings.color
+                    task.delay(0.1, function() if h then h:Destroy() end end)
+                end
             end
         end
     end
 
-    angle = angle + dt * settings.orbitSpeed
-    waveTimer = waveTimer + dt * settings.waveSpeed
+    local controlActive = char:FindFirstChild("Precision Control")
 
     for i, part in ipairs(auraParts) do
         if not part or not part:IsDescendantOf(workspace) then table.remove(auraParts, i); continue end
-
         part.CanCollide = false
         part.Transparency = settings.transparency
         
-        local f = part:FindFirstChild("AuraF") or Instance.new("Fire", part); f.Name = "AuraF"
-        f.Color = settings.color; f.Size = settings.glowStrength / 2
-        
-        local l = part:FindFirstChild("AuraL") or Instance.new("PointLight", part); l.Name = "AuraL"
-        l.Color = settings.color; l.Brightness = settings.glowStrength / 5
+        -- Visuals
+        local f = part:FindFirstChild("AF") or Instance.new("Fire", part); f.Name = "AF"; f.Color = settings.color; f.Size = settings.glowStrength / 2
+        local l = part:FindFirstChild("AL") or Instance.new("PointLight", part); l.Name = "AL"; l.Color = settings.color; l.Brightness = settings.glowStrength / 5
 
-        if attacking and targetObject then
-            local tPos = (targetObject:IsA("Model") and targetObject:GetPivot().Position) or targetObject.Position
-            part.AssemblyLinearVelocity = (tPos - part.Position).Unit * MAGNET_FORCE
-            if (tPos - part.Position).Magnitude < 4 then part.AssemblyLinearVelocity = hrp.Velocity * FFE_POWER end
-        else
-            local dist = (part.Position - hrp.Position).Magnitude
-            if dist > 25 then
-                part.AssemblyLinearVelocity = (hrp.Position - part.Position).Unit * 250
+        local s = shotItems[part]
+
+        if s then
+            local distToPlayer = (hrp.Position - part.Position).Magnitude
+            if s.returning then
+                -- HYPER RECALL PHYSICS
+                local direction = (hrp.Position - part.Position).Unit
+                local speed = math.clamp(distToPlayer * 25, 500, MAX_RECALL_SPEED)
+                part.AssemblyLinearVelocity = direction * speed
+                
+                -- Ankunft in Aura
+                if distToPlayer < 8 then shotItems[part] = nil end
             else
-                local targetPos
-                if hum.MoveDirection.Magnitude > 0 then
-                    targetPos = hrp.Position - (hum.MoveDirection * (FOLLOW_DIST + (i*0.8))) + (hrp.CFrame.RightVector * math.sin(waveTimer + i) * WAVE_WIDTH) + Vector3.new(0, settings.height, 0)
-                else
-                    local offset = i * (math.pi * 2 / #auraParts)
-                    targetPos = hrp.Position + Vector3.new(math.cos(angle + offset) * settings.distance, settings.height, math.sin(angle + offset) * settings.distance)
+                -- MAGNET SCHUSS
+                local tP = (s.target:IsA("Model") and s.target:GetPivot().Position or s.target.Position)
+                local distToTarget = (tP - part.Position).Magnitude
+                part.AssemblyLinearVelocity = (tP - part.Position).Unit * MAGNET_FORCE
+                
+                -- Fling bei Treffer
+                if distToTarget < 5 then 
+                    part.AssemblyLinearVelocity = Vector3.new(0, 1000, 0) * FFE_POWER 
+                    s.returning = true -- Sofort zurück nach Treffer
                 end
-                part.AssemblyLinearVelocity = (targetPos - part.Position) * 25
+            end
+        elseif controlActive and manualMode then
+            local mPos = mouse.Hit.Position
+            part.CFrame = CFrame.new(mPos) 
+            part.AssemblyLinearVelocity = hrp.Velocity * FFE_POWER 
+        else
+            -- NORMAL AURA
+            local tPos = hrp.Position + Vector3.new(math.cos(angle) * settings.distance, settings.height + math.sin(waveTimer * 0.5) * 2, math.sin(angle) * settings.distance)
+            if (part.Position - hrp.Position).Magnitude > 80 then
+                part.AssemblyLinearVelocity = (hrp.Position - part.Position).Unit * 500
+            else
+                part.AssemblyLinearVelocity = (tPos - part.Position) * 35
             end
         end
     end
 end)
 
-UserInputService.InputBegan:Connect(function(input, gpe)
-    if not gpe and input.KeyCode == Enum.KeyCode.F8 then mainFrame.Visible = not mainFrame.Visible end
-end)
+UserInputService.InputBegan:Connect(function(i, g) if not g and i.KeyCode == Enum.KeyCode.F8 then main.Visible = not main.Visible end end)
