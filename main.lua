@@ -200,6 +200,7 @@ local function createGUI()
         {name="NoClip",url="https://raw.githubusercontent.com/xqrto/upd/main/noclip.lua"},
         {name="FreeCam",url="https://raw.githubusercontent.com/xqrto/upd/main/freecam.lua"},
         {name="Fly",url="https://raw.githubusercontent.com/xqrto/upd/main/fly.lua"},
+        {name="V-Fly",url="https://raw.githubusercontent.com/xqrto/upd/main/vehicle.lua"},
         {name="Tracer",url="https://raw.githubusercontent.com/xqrto/upd/main/tracer.lua"},
         {name="ESP",url="https://raw.githubusercontent.com/xqrto/upd/main/chams.lua"},
         {name="Name-ESP",url="https://raw.githubusercontent.com/xqrto/upd/main/nameESP.lua"},
