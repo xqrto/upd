@@ -32,6 +32,7 @@ local mods = {
     {"Brookhaven", "Brookhaven XR", "https://raw.githubusercontent.com/xqrto/upd/main/brook.lua"},
     {"Brookhaven", "XR Safety", "https://raw.githubusercontent.com/xqrto/upd/main/xrsafe.lua"},
     {"Brookhaven", "Soccer Fling", "https://raw.githubusercontent.com/xqrto/upd/main/soccer.lua"},
+    {"Brookhaven", "Name Changer", "https://raw.githubusercontent.com/xqrto/upd/main/bnamechange.lua"},
 
     -- >> ITEMS TAB
     {"Items", "Telekinesis", "https://raw.githubusercontent.com/xqrto/upd/main/telikinesis.lua"},
